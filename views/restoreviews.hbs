@@ -1,0 +1,152 @@
+    <div class="maindiv-restoreview">
+
+        <div class="introdetails">
+            <img src={{resto.image}}>
+            <h1>{{resto.restoName}}</h1>
+            <h2>Taft Avenue, Manila</h2>
+            <p>
+                {{resto.restoDesc}}
+            </p><br>
+
+            
+
+            <div class="restoreview-report">
+              <div class="report-title" id="total-reviews"></div>
+
+              <script>
+                  // Calculate and set the total reviews using JavaScript
+                  let totalReviews = {{resto.W_ratings}} + {{resto.L_ratings}} + {{resto.M_ratings}};
+                  let strTotalReviews = "Total Reviews: " + totalReviews.toString();
+                  document.getElementById('total-reviews').innerText += strTotalReviews;
+              </script>
+
+              <p>W's: {{resto.W_ratings}}</p>
+              <progress class="progress W" value="{{resto.W_ratings}}" max=""></progress>
+              <p>Mids: {{resto.M_ratings}}</p>
+              <progress class="progress M" value="{{resto.M_ratings}}" max=""></progress>
+              <p>L's: {{resto.L_ratings}}</p>
+              <progress class="progress L" value="{{resto.L_ratings}}" max=""></progress>
+
+              <script>
+                // Set the max attribute of progress bars to totalReviews
+                  document.querySelectorAll('.progress').forEach(progress => {
+                      progress.max = totalReviews;
+                  });
+              </script>
+            {{#if user}}
+              <a href="/compose/{{resto.restoID}}" class="cta compose">
+                  <button>Write a review</button>
+              </a>
+            {{/if}}
+          </div>
+
+        </div>
+
+        <div class="reviewlist">
+
+            <div class="restolistlabel">
+                <h2>Reviews</h2>
+            </div>
+
+
+            {{#each reviews}}
+
+                <div class="user-review" data-review-index="{{@index}}">
+
+                  <a href="/viewacc/{{this.userID}}"><img class="usericon" src={{this.userImage}}></a>
+
+                  <div class="review">
+                      <a href="/reviewdetails/{{this.reviewID}}">
+                          <div class="reviewertag">
+                              <h3>{{this.userName}}</h3>
+                              {{#if this.isEdited}}
+                                <h3><span style="font-weight: lighter;">Edited</span></h3>
+                              {{/if}}
+                              <h3><span style="font-weight: lighter;">{{this.reviewDate}}</span></h3>
+                          </div>
+
+                          <div class="rating {{this.reviewRating}}">
+                              {{this.reviewRating}} Rating
+                          </div>
+
+                          <div class="reviewpreview"> <!--This is the review preview, not full details-->
+                              <h3>{{this.reviewTitle}}</h3>
+                              <p>{{this.reviewContent}}</p>
+                          </div>
+
+                          <div class="helpfulornot">
+                              <i class="fa-regular fa-thumbs-up"></i>
+                              <p class="helpfulcount"> {{this.helpfulCount}} </p>
+                              <i class="fa-regular fa-thumbs-down"></i>
+                              <p class="nothelpfulcount"> {{this.notHelpfulCount}} </p>
+                          </div>
+                      </a>
+                  </div>
+
+                </div>
+
+            
+            {{/each}}
+
+            <div class="pagenavigator">
+                <button id="pagebuttonprevious"><i class="fa-solid fa-chevron-left fa-2xl"></i></button>
+                <button id="pagebuttonnext"><i class="fa-solid fa-chevron-right fa-2xl"></i></button>
+        
+            </div>
+
+        </div>
+
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const reviewsPerPage = 3;
+  let currentPage = 0; // Initialize current page to 0
+  const userReviews = document.querySelectorAll('.user-review');
+  const totalPages = Math.ceil(userReviews.length / reviewsPerPage);
+
+  console.log('Total Reviews:', userReviews.length);
+  console.log('Total Pages:', totalPages);
+
+  // Function to display reviews for the current page
+  function displayReviews() {
+    console.log('Displaying reviews for page:', currentPage + 1);
+    userReviews.forEach((review, index) => {
+      const pageIndex = Math.floor(index / reviewsPerPage);
+      if (pageIndex === currentPage) {
+        review.style.setProperty('display', 'flex', 'important');
+      } else {
+        review.style.setProperty('display', 'none', 'important');
+      }
+    });
+  }
+
+  // Add event listeners to navigation buttons
+  const previousButton = document.getElementById('pagebuttonprevious');
+  const nextButton = document.getElementById('pagebuttonnext');
+
+  if (previousButton && nextButton) {
+    previousButton.addEventListener('click', () => {
+      console.log('Previous button clicked');
+      if (currentPage > 0) { // Check if current page is greater than 0
+        currentPage--;
+        displayReviews();
+      }
+    });
+
+    nextButton.addEventListener('click', () => {
+      console.log('Next button clicked');
+      if (currentPage < totalPages - 1) { // Check if current page is less than total pages
+        currentPage++;
+        displayReviews();
+      }
+    });
+  } else {
+    console.log('Previous or Next button not found');
+  }
+
+
+  // Display initial set of reviews
+  displayReviews();
+});
+</script>

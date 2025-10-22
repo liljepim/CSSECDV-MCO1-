@@ -1,0 +1,47 @@
+[{
+  "userID": 3,
+  "userName": "AverageEnjoyer",
+  "userPassword": "securepassword3",
+  "userDesc": "Casual foodie",
+  "userImage": "/img/usericon2.jpg",
+  "isEstablishmentOwner": false,
+  "establishmentID": 0
+},
+{
+  "userID": 2,
+  "userName": "HaterMan24",
+  "userPassword": "securepassword2",
+  "userDesc": "Not a fan of everything",
+  "userImage": "/img/testimg.png",
+  "isEstablishmentOwner": false,
+  "establishmentID": 0
+},
+{
+  "userID": 1,
+  "userName": "Username12345",
+  "userPassword": "securepassword1",
+  "userDesc": "Passionate food lover!",
+  "userImage": "/img/usericon.jpg",
+  "isEstablishmentOwner": true,
+  "establishmentID": 1
+},
+{
+  "userID": 4,
+  "userName": "hudsdownunder",
+  "userPassword": "luker",
+  "userDesc": "im j",
+  "userImage": "",
+  "isEstablishmentOwner": false,
+  "establishmentID": null,
+  "__v": 0
+},
+{
+  "userID": 5,
+  "userName": "Lukerino",
+  "userPassword": "lukerluker",
+  "userDesc": "Developer || @lkmrnsng",
+  "userImage": "",
+  "isEstablishmentOwner": false,
+  "establishmentID": null,
+  "__v": 0
+}]

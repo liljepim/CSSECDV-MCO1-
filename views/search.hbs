@@ -1,0 +1,69 @@
+<div class="page-wrap">
+    <div class="search-criteria">
+        <form action="/search" method="GET" class="search-form" role="search">
+            <input type="text" 
+                class="input-box" 
+                placeholder="Search"  
+                name="searchText" 
+                value="{{searchText}}" required 
+                oninvalid="this.setCustomValidity('Search keyword cannot be blank')"
+                oninput="this.setCustomValidity('')"
+            />
+            <button class="form-button" type="submit"><span class="search-button" ></span></button>
+        </form>
+        <form class="search-filter">
+            <h1 class="bold">Filter by rating:</h1>
+            <label class="checkbox-container">
+                <input type="radio" name="rating" value="W" id="w-button" {{#if ratingw}} checked{{/if}}>
+                <span class="rating-filter blue">W</span>
+            </label>
+            <label class="checkbox-container">
+                <input type="radio" name="rating" value="M" id="mid-button" {{#if ratingm}} checked{{/if}}>
+                <span class="rating-filter gray">MID</span>
+            </label>
+            <label class="checkbox-container">
+                <input type="radio" name="rating" value="L" id="l-button" {{#if ratingl}} checked{{/if}}>
+                <span class="rating-filter red">L</span>
+            </label>
+            <button class="clear-button">Clear</button>
+        </form>
+    </div>
+
+    <div class="results">
+        <div class="result-header">
+            <h1 class="bold">Results:</h1>
+            <div class="page-buttons">
+                <button>&lt;</button>
+                <button>&gt;</button>
+            </div>
+        </div>
+        <div class="restolist-wrapper">
+
+            <div class="restolist">
+                {{#each restos}}
+                    <a href="/restoreviews/{{this.restoID}}">
+                        <div class="resto">
+                            <img src={{this.image}}>
+                            <div class="detailsbox">
+                                <div class="restoname">
+                                    <h2>{{this.restoName}}</h2>
+                                </div>
+                                <div class="restodetails">
+                                    <h3>{{this.restoName}}</h3> <br>
+                                    <p>{{this.restoDesc}}</p>
+                                    <br>
+                                    <br>
+                                    <h3> Rating: </h3>
+                                    <br>
+                                    <h2 id="rating">{{this.aveRating}}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {{/each}}
+
+            </div>
+        </div>
+
+    </div>
+</div>

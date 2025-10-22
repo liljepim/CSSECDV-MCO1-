@@ -1,0 +1,71 @@
+<div class="page-wrap">
+  <div class="logo big"></div>
+  <div class="logo small"></div>
+
+  <div class="register-wrap">
+    <div class="register">
+      <div class="form-wrap">
+        <img class="text-logo" src="/img/tastetaft_text.svg"/>
+        <h1 class="bold">Register</h1>
+        {{#each errors}}<h5 style="color:red">{{this}}</h5>{{/each}}
+        <form action="/register" method="POST" enctype="multipart/form-data">
+          <input
+            type="text"
+            class="input-box"
+            id="username"
+            placeholder="Username"
+            name="username"
+            required
+          />
+          <input
+            type="password"
+            class="input-box"
+            id="password"
+            placeholder="Password"
+            name="password"
+            required
+          />
+          {{!-- <input
+            type="text"
+            class="input-box"
+            id="id-number"
+            placeholder="ID number"
+            name="idnumber"
+            
+          /> --}}
+          <input
+            type="password"
+            class="input-box"
+            id="password"
+            placeholder="Confirm Password"
+            name="password2"
+            required
+          />
+          <input
+            type="text"
+            class="description-box"
+            id="description"
+            placeholder="Description"
+            name="description"
+          />
+          <button type="submit" class="form-button">Register</button>
+        
+          </div>
+          <div class="avatar-wrap">
+            <div class="avatar-text">Upload an avatar:</div>
+            <div class="icon-container">
+              <div class="main-icon">
+                <div class="upload-icon">↑</div>
+              </div>
+
+              <!-- Hidden input[type="file"] -->
+              <input type="file" id="fileInput" accept="image/*" name="image"/>
+          
+            </div>
+          </div>
+        </form>
+    </div>
+    
+  </div>
+
+</div>

@@ -1,0 +1,246 @@
+<div class="maindiv">
+    <h1 class="restoheader">Review Details</h1>
+    <br>
+
+    <div class="reviewlist">
+        <div class="review nohovereffectreview bigsizereview">
+            <div class="reviewertag" id="reviewertagfulldetails">
+                <a href="/viewacc/{{reviewUser.userID}}"><img class="usericon" src={{reviewUser.userImage}}></a>
+                <h3>{{reviewUser.userName}}</h3>
+                <p class="saysthat">says that this resto is: <span class="rating{{review.reviewRating}}">{{review.reviewRating}}</span></p>
+            </div>
+
+            <div class="reviewdetails">
+                <p>Review ID: {{review.reviewID}} | Date: {{review.reviewDate}}</p>
+            </div>
+
+            <div class="fullreview">
+                <h3>{{review.reviewTitle}}</h3>
+                <p>{{review.reviewContent}}</p>
+            </div>
+
+            <div class="reviewmedia">
+                <img src={{review.reviewImages}}>
+            </div>
+
+            {{#if isLoggedIn}}
+            <div class="helpfulornot">
+                <p>Was this review helpful?</p>
+                <button class="helpful"  id="helpfulbutton"><i class="fa-solid fa-thumbs-up"></i>
+                    <p class="helpfulcount" id="helpfulcount">{{review.helpfulCount}}</p>
+                </button>
+                <button class="nothelpful"  id="nothelpfulbutton"><i class="fa-solid fa-thumbs-down"></i>
+                    <p class="nothelpfulcount" id="nothelpfulcount">{{review.notHelpfulCount}}</p>
+                </button>
+            </div>
+        
+            {{/if}}
+            </div>
+
+
+            {{!-- Response from the Owner section --}}
+            <div class="owner-response">
+                <h3>Responses from the Owner:</h3>
+                {{#if hasNoResponses}}
+                <div id="noResponsesYet">No responses yet.</div>
+                {{/if}}
+                {{#each review.responses}}
+                <div class="response-item">
+                    <p>{{this.responseContent}}</p>
+                    <p class="response-date">Responded on {{this.responseDate}}</p>
+                </div>
+                {{/each}}
+            </div>
+            
+
+            {{!-- Owner response section --}}
+            {{#if isOwner}}
+            <div class="owner-response-form">
+                <h3>Respond to this Review:</h3>
+                <textarea id="owner-response-text" placeholder="Write your response..."></textarea>
+                <button id="submit-owner-response">Respond</button>
+            </div>
+            {{/if}}
+    </div>
+</div>
+
+{{#if isLoggedIn}}
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const helpfulButton = document.getElementById('helpfulbutton');
+        const helpfulCount = document.getElementById('helpfulcount');
+        const notHelpfulButton = document.getElementById('nothelpfulbutton');
+        const notHelpfulCount = document.getElementById('nothelpfulcount');
+
+        // 0 - Not interacted, 1 - Helpful, 2 - Not Helpful
+        var previousInteraction = {{interactionCode}};
+            
+
+        if (previousInteraction == 1) {
+            helpfulButton.style.backgroundColor = "rgb(193, 235, 118)";
+            notHelpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+        }else if (previousInteraction == 2) {
+            notHelpfulButton.style.backgroundColor = "rgb(252, 153, 135)";
+            helpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+        }else {
+            helpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+            notHelpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+        }
+				
+
+        helpfulButton.addEventListener('click', () => {
+            const reviewId = {{ review.reviewID }}; // Use the review's _id
+            const userId = {{ user.userID }}; // Use the user's _id
+
+            if (previousInteraction == 1) { // Toggle off the vote
+                fetch('/reviews/removehelpful', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reviewId, userId}),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    helpfulCount.textContent = data.updatedReview.helpfulCount;
+                    notHelpfulCount.textContent = data.updatedReview.notHelpfulCount;
+                    
+                    helpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+                    notHelpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+
+                    previousInteraction = 0;
+                    console.log('Vote Removed');
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                })
+            } else {
+                fetch('/reviews/helpful', { //If the vote is different, toggle on the vote
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reviewId, userId, helpful: true }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    // Update helpful count in the DOM
+                    helpfulCount.textContent = data.updatedReview.helpfulCount;
+                    notHelpfulCount.textContent = data.updatedReview.notHelpfulCount;
+                    
+                    helpfulButton.style.backgroundColor = "rgb(193, 235, 118)";
+                    notHelpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+                    
+                    previousInteraction = 1;
+
+                    console.log('Helpful review updated');
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+
+        });
+
+        notHelpfulButton.addEventListener('click', () => {
+            const reviewId = {{ review.reviewID }}; // Use the review's _id
+            const userId = {{ user.userID }}; // Use the user's _id
+            if (previousInteraction == 2) { // Toggle off the vote
+                fetch('/reviews/removehelpful', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reviewId, userId}),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    helpfulCount.textContent = data.updatedReview.helpfulCount;
+                    notHelpfulCount.textContent = data.updatedReview.notHelpfulCount;
+                    
+                    helpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+                    notHelpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+
+                    previousInteraction = 0;
+                    console.log('Vote Removed');
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                })
+            } else { //If the vote is different, toggle on the vote
+                fetch('/reviews/helpful', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reviewId, userId, helpful: false }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    // Update not helpful count in the DOM
+                    helpfulCount.textContent = data.updatedReview.helpfulCount;
+                    notHelpfulCount.textContent = data.updatedReview.notHelpfulCount;
+
+                    notHelpfulButton.style.backgroundColor = "rgb(252, 153, 135)";
+                    helpfulButton.style.backgroundColor = "rgb(255, 255, 255)";
+
+                    previousInteraction = 2;
+                    console.log('Not helpful review updated');
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+    });
+
+    {{#if isOwner}}
+    document.addEventListener('DOMContentLoaded', function() {
+        const submitResponseButton = document.getElementById('submit-owner-response');
+        const responseTextarea = document.getElementById('owner-response-text');
+
+        submitResponseButton.addEventListener('click', () => {
+            const responseContent = responseTextarea.value.trim(); 
+            if (responseContent) {
+                const reviewId = {{ review.reviewID }}; // Use the review's _id
+                const ownerId = {{ user.userID }}; // Use the owner's _id
+
+                fetch('/reviews/respond', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reviewId, ownerId, responseContent }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    // Update the responses section with the new response
+                    const responsesContainer = document.querySelector('.owner-response');
+                    const newResponse = document.createElement('div');
+                    newResponse.className = 'response-item';
+                    newResponse.innerHTML = `
+                        <p>${data.latestResponse.responseContent}</p>
+                        <p class="response-date">Responded on ${data.latestResponse.responseDate}</p>
+                    `;
+                    responsesContainer.appendChild(newResponse);
+
+                    // Clear the textarea
+                    responseTextarea.value = '';
+
+                    // Hide the "No responses yet" message if it's present
+                    if (document.getElementById('noResponsesYet')) {
+                        document.getElementById('noResponsesYet').style.display = 'none';
+                    }
+                    
+                    console.log('Response submitted successfully');
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+    });
+    {{/if}}
+</script>
+{{/if}}

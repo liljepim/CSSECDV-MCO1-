@@ -1,0 +1,60 @@
+{{#each css}}
+	<link rel="stylesheet" href="/css/{{this}}.css">
+{{/each}}
+
+<div class="container">
+	<div class="account-panel">
+		<img class="profileimg" src="{{currentUser.userImage}}"></a>
+		<div class="account-text-container">
+			<h2 class="info-line1" style="text-align: center;">{{currentUser.userName}}</h1>
+				<h2 class="info-line1" style="text-align: center;">ID: {{currentUser.userID}}</h1>
+					<p class="info-line1"><b>Description:</b></p>
+					<p>{{currentUser.userDesc}}</p>
+		</div>
+	</div>
+	<div class="reviewlist">
+
+		<div class="restolistlabel">
+			<h2>Reviews</h2>
+			<h3><a href="/viewfullreviews/{{currentUser.userID}}">View All</a></h3>
+		</div>
+
+
+		{{#each currentUserReviews}}
+			<div class="user-review">
+
+				<img class="usericon" src="{{../currentUser.userImage}}">
+
+				<div class="review">
+					<a href="/reviewdetails/{{this.reviewID}}">
+						<div class="reviewertag">
+							<h2>{{this.reviewTitle}}</h2>
+							<h3><span style="font-weight: lighter;">{{this.reviewDate}}</span></h3>
+						</div>
+
+						<div class="rating {{this.reviewRating}}">
+							{{this.reviewRating}} Resto
+						</div>
+
+						<div class="reviewpreview"> <!--This is the review preview, not full details-->
+							<h3>{{this.reviewTitle}}</h3>
+							<p>{{this.reviewContent}}</p>
+						</div>
+
+						<div class="helpfulornot">
+							<div><i class="fa-regular fa-thumbs-up"></i>
+								<p class="helpfulcount">{{this.helpfulCount}}</p>
+							</div>
+							<div><i class="fa-regular fa-thumbs-down"></i>
+								<p class="nothelpfulcount">{{this.notHelpfulCount}}</p>
+							</div>
+						</div>
+					</a>
+				</div>
+
+			</div>
+		{{/each}}
+
+
+	</div>
+</div>

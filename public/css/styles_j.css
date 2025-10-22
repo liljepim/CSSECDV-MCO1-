@@ -1,0 +1,359 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:500');
+* {
+margin: 0;
+padding: 0;
+font-family: 'Montserrat', sans-serif;
+box-sizing: border-box;
+}
+
+
+
+:root {
+--primary-color: #97EB02;
+--secondary-color: #000;
+--tertiary-color: #fff;
+--quaternary-color: #EBE702;
+}
+
+html, body {
+height: 130vh;
+}
+
+body {
+overflow-x: hidden;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+font-family: 'Montserrat', sans-serif;
+padding: 0;
+background-color: var(--primary-color);
+
+}
+
+.page-wrap {
+position: relative;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: space-between;
+min-height: 100%;
+width: 100%;
+overflow: hidden;
+margin: 0;
+padding: 0;
+}
+
+.logo {
+display: inline-block;
+position: absolute;
+background-image: url('/img/kahitsaanlogo-white.svg');
+background-repeat: no-repeat;
+background-position: center center;
+z-index: -1;
+}
+
+.logo.big {
+background-size: 200vh;
+top: -800px;
+left: -700px;
+transform: rotate(66deg);
+height: 2400px;
+width: 2400px;
+}
+
+.logo.small{
+background-size: 100vh;
+transform: rotate(30deg);
+top: -900px;
+right: -700px;
+height: 1962px;
+width: 1962px;
+
+}
+
+.login-wrap {
+background-color: var(--tertiary-color);
+min-width: 50%;
+min-height: 45%;
+border-radius: 35px;
+display: flex;
+flex-direction: row;
+justify-content: flex-start;
+align-items: center;
+padding: 20px;
+margin: 0;
+margin-top: 150px;
+}
+
+.log-in {
+width: 70%;
+}
+
+.text-logo {
+height: 68px;
+width: 199px;
+}
+
+.form-wrap {
+display: flex;
+flex-direction: column;
+margin: 30px 0 50px 50px;
+box-sizing: border-box;
+width: 80%;
+}
+
+form {
+display: flex;
+flex-direction: column;
+margin: 0;
+}
+
+h1.bold{
+font-size: 38px;
+font-weight: bold;
+}
+
+.input-box {
+border: none;
+background-color: #D9D9D9;
+width: 100%;
+height: 62px;
+border-radius: 97px;
+padding-left: 30px;
+margin: 10px 0 10px 0;
+color: black;
+font-weight: medium;
+font-size: 20px;
+}
+
+input[type=text]::placeholder, input[type=password]::placeholder{
+color: black;
+}
+
+
+
+.remember-me {
+margin: 10px 0 0 10px;
+}
+
+
+.checkbox-container {
+display: block;
+position: relative;
+padding-left: 30px;
+margin-bottom: 12px;
+width: 170px;
+cursor: pointer;
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+}
+
+.checkbox-container input {
+position: absolute;
+opacity: 0;
+cursor: pointer;
+height: 0;
+width: 0;
+}
+
+.checkmark {
+position: absolute;
+top: 0;
+left: 0;
+height: 18px;
+width: 18px;
+background-color: #D9D9D9;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+background-color: #ccc;
+}
+
+.checkbox-container input:checked ~.checkmark {
+background-color: var(--primary-color);
+}
+
+.checkmark:after {
+content: "";
+position: absolute;
+display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after{
+display: block;
+}
+
+.checkbox-container .checkmark:after {
+left: 5px;
+top: 1px;
+width: 5px;
+height: 10px;
+border: solid white;
+border-width: 0 3px 3px 0;
+-webkit-transform: rotate(45deg);
+-ms-transform: rotate(45deg);
+transform: rotate(45deg);
+}
+
+.form-button {
+height: 62px;
+width: 100%;
+margin: 10px 0 10px 0;
+border-radius: 97px;
+border: 0;
+font-size: 32px;
+font-weight: bold;
+background-color: var(--quaternary-color);
+}
+
+.form-button:hover {
+cursor: pointer;
+}
+
+.line {
+display: block;
+min-height: 480px;
+width: 2px;
+background-color: black;
+border-left: 2px solid black;
+margin: 0;
+padding: 0;
+
+}
+
+
+/* Register CSS goes here*/
+
+.register-wrap {
+background-color: var(--tertiary-color);
+width: 50%;
+min-height: 45%;
+border-radius: 35px;
+display: flex;
+flex-direction: row;
+justify-content: flex-start;
+align-items: center;
+padding: 20px;
+margin: 0;
+margin-top: 150px;
+}
+
+.register {
+width:100%;
+height: 100%;
+display: flex;
+flex-direction: row;
+justify-content: flex-start;
+}
+
+#id-number{
+height: 50px;
+}
+
+.description-box{
+border: 0;
+border-bottom: 1px solid black;
+background-color: transparent;
+width: 100%;
+height: 62px;
+padding-left: 30px;
+margin: 0 0 10px 0;
+color: black;
+font-weight: medium;
+font-size: 20px;
+outline: none;
+}
+
+.avatar-wrap{
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+align-items: center;
+margin: 23% 0 0 50px;
+height: 100%;
+width: 40%;
+}
+
+.avatar {
+display: inline-block;
+background-color: var(--quaternary-color);
+border: 2px solid black;
+width: 248px;
+height: 248px;
+border-radius: 50%;
+margin-top: 25px;
+}
+
+.avatar-text{
+text-align: center;
+}
+
+.registerlink {
+display: flex;
+width: 100%;
+}
+
+.registerlink a {
+margin-left: 5px;
+text-decoration: none;
+color: #548500;
+}
+
+.registerlink a:hover {
+color: #97EB02;
+}
+
+/* Style for the upload icon */
+.main-icon {
+background-color: #EBE702; 
+border: 1px solid #000000;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #fff;
+transition: filter 0.3s; 
+height: 175px;
+width: 175px;
+cursor: pointer;
+}
+.icon-container {
+position: relative;
+}
+.upload-icon {
+position: absolute;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #fff;
+cursor: pointer;
+opacity: 0; 
+transition: opacity 0.3s; 
+font-size: 40px;
+}
+
+/* Hover effect */
+.icon-container:hover .main-icon {
+filter: brightness(0.8); 
+}
+
+.icon-container:hover .upload-icon {
+opacity: 1; 
+}
+
+
+
+
+input[type="file"] {
+position: absolute;
+top: 0;
+left: 0;
+height: 175px;
+width: 175px;
+border-radius: 50%;
+opacity: 0;
+cursor: pointer;
+}

@@ -1,0 +1,49 @@
+{{#each css}}
+	<link rel="stylesheet" href="/css/{{this}}.css">
+{{/each}}
+
+<div class="container">
+	<div class="account-panel">
+		<div class="icon-container">
+			<div class="main-icon" onclick="triggerFileInput()">
+				<img class="profileimg" src="{{currentUser.userImage}}">
+			</div>
+			<div class="upload-icon">↑</div>
+			<!-- Hidden input[type="file"] -->
+			<input type="file" id="fileInput" name="fileInput" accept="image/*" name="image"/ form="editform">
+
+		</div>
+		<script>
+			function triggerFileInput() {
+				document.getElementById('fileInput').click();
+			}
+
+			function handleFileChange() {
+				// Get the file from the input
+
+			}
+		</script>
+
+		<div class="account-text-container">
+			<h2 class="info-line1" style="text-align: center;">{{currentUser.userName}}</h1>
+				<h2 class="info-line1" style="text-align: center;">ID: {{currentUser.userID}}</h1>
+					</p>
+					<p style="text-align: center; margin-top: 5%; margin-bottom: 5%"><b>Review: {{currentUserReviewCount}}</b></p>
+					<button class="donate-button">Donate</button>
+					<form action="/logout">
+						<input type="submit" class="logout-button" value="Logout"/>
+					</form>
+					
+		</div>
+	</div>
+	<div class="review-panel">
+		<form action="/editprofile/{{currentUser.userID}}" method="POST" id="editform">
+			<h2 style="text-align: left; margin-top: 5%; margin-left: 5%">Account Details:</h2>
+			<input required type="text" name="userName" class="credentials" placeholder="{{currentUser.userName}}">
+			<input required type="text" name="userPassword" class="credentials" placeholder="New password">
+			<h2 style="text-align: left; margin-top: 5%; margin-left: 5%">Description:</h2>
+			<input required type="text" name="userDesc" class="description" placeholder="{{currentUser.userDesc}}">
+			<button type="submit" class="edit-button">Update</button>
+		</form>
+	</div>
+</div>

@@ -1,0 +1,90 @@
+  <div class="review-wrapper">
+        <h1>Review a Resto</h1>
+        <form action="/edit-review/{{review.reviewID}}" method="POST">
+		<input type="hidden" name="userID" value="{{review.userID}}">
+        <input type="hidden" name="restoID" value="{{review.restoID}}">
+        <input type="hidden" name="reviewID" value="{{review.reviewID}}">
+        <input type="hidden" name="isEdited" value="true">
+
+            <div class="review-form">
+                <div class="rating-wrapper">
+                    <div class="resto-info">
+                        <img src={{resto.image}}>
+                        <div class="resto-details">
+                            <h2>{{resto.restoName}}</h2>
+                            <h3>Taft Avenue, Manila</h3>
+                        </div>
+
+                    </div>
+
+
+                    <br>
+
+                    <div class="review-rating">
+                        <label for="rating">Rating:</label>
+                        <div class="rating-choices">
+                            <input type="radio" id="w" name="position" value="W">
+                            <label for="w" class="radio-label">W</label>
+
+                            <input type="radio" id="mid" name="position" value="MID">
+                            <label for="mid" class="radio-label">MID</label>
+
+                            <input type="radio" id="l" name="position" value="L">
+                            <label for="l" class="radio-label">L</label>
+
+
+                        </div>
+
+                    </div>
+
+                    <script>
+                        if("{{review.reviewRating}}" == "W"){
+                            // Get the radio button element
+                            var radio = document.getElementById('w');
+                            
+                            // Set the 'checked' property to true
+                            radio.checked = true;
+                        }
+                        else if("{{review.reviewRating}}" == "M"){
+                            // Get the radio button element
+                            var radio = document.getElementById('mid');
+                            
+                            // Set the 'checked' property to true
+                            radio.checked = true;
+                        }
+                        else if("{{review.reviewRating}}" == "L"){
+                            // Get the radio button element
+                            var radio = document.getElementById('l');
+                            
+                            // Set the 'checked' property to true
+                            radio.checked = true;
+                        }
+                    </script>
+                    
+
+                    <div class="review-buttons">
+                        <button type="submit" id="submit-btn">Submit</button>
+                    </div>
+
+                </div>
+
+
+                <br>
+                <div class="review-container">
+                    <div class="review-content-wrapper">
+                        <label for="review">Review Title:</label>
+                        <input type="text" id="review-title" name="reviewTitle" value="{{review.reviewTitle}}"required>
+                        <br>
+                        <label for="review">Review:</label>
+                        <textarea id="review" name="reviewContent" required class="review-textarea">{{review.reviewContent}}</textarea>
+                        <br>
+                        <div class="file-upload">
+                            <label for="media" class="custom-button">Upload Media:</label>
+                            <input type="file" id="media" name="media" accept="image/*" multiple>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>

@@ -1,0 +1,82 @@
+[
+  {
+      "restoID": 1,
+      "restoName": "24 Chicken",
+      "restoDesc": "24 Chicken is a Korean fried chicken restaurant that offers a variety of flavors and styles of fried chicken.",
+      "aveRating": "W",
+      "W_ratings": 42,
+      "L_ratings": 18,
+      "M_ratings": 10,
+      "image": "/img/24chicken.jpg"
+  },
+  {
+      "restoID": 2,
+      "restoName": "Everything But Cheese",
+      "restoDesc": "Everything But Cheese is a restaurant that offers a variety of dishes that are perfect for cheese lovers.",
+      "aveRating": "L",
+      "W_ratings": 15,
+      "L_ratings": 35,
+      "M_ratings": 20,
+      "image": "/img/EverythingButCheese.webp"
+  },
+  {
+      "restoID": 3,
+      "restoName": "Army Navy",
+      "restoDesc": "Army Navy is a fast-food restaurant that offers a variety of burgers, burritos, and other American-Mexican dishes.",
+      "aveRating": "M",
+      "W_ratings": 20,
+      "L_ratings": 25,
+      "M_ratings": 38,
+      "image": "/img/ArmyNavy.jpg"
+  },
+  {
+      "restoID": 4,
+      "restoName": "Pizza Telefono",
+      "restoDesc": "Pizza Telefono is a pizza restaurant that offers a variety of pizza flavors and styles.",
+      "aveRating": "W",
+      "W_ratings": 43,
+      "L_ratings": 20,
+      "M_ratings": 15,
+      "image": "/img/PizzaTelefono.jpg"
+  },
+  {
+      "restoID": 5,
+      "restoName": "Burger King",
+      "restoDesc": "Burger King is a fast-food restaurant that offers a variety of burgers, fries, and other American dishes.",
+      "aveRating": "L",
+      "W_ratings": 18,
+      "L_ratings": 35,
+      "M_ratings": 22,
+      "image": "/img/BurgerKing.jpg"
+  },
+  {
+      "restoID": 6,
+      "restoName": "Samgyup-salamat",
+      "restoDesc": "Samgyupsalamat is a Korean barbecue restaurant that offers a variety of meats and side dishes.",
+      "aveRating": "W",
+      "W_ratings": 42,
+      "L_ratings": 20,
+      "M_ratings": 18,
+      "image": "/img/Samgyupsalamat.jpeg"
+  },
+  {
+      "restoID": 7,
+      "restoName": "McDonald's",
+      "restoDesc": "McDonald's is a fast-food restaurant that offers a variety of burgers, fries, and other American dishes.",
+      "aveRating": "W",
+      "W_ratings": 32,
+      "L_ratings": 20,
+      "M_ratings": 15,
+      "image": "/img/McDo.webp"
+  },
+  {
+      "restoID": 8,
+      "restoName": "Ate Rica's Bacsilog",
+      "restoDesc": "Ate Rica's Bacsilog is a restaurant that offers a variety of dishes that are perfect for bacon and egg lovers.",
+      "aveRating": "L",
+      "W_ratings": 15,
+      "L_ratings": 35,
+      "M_ratings": 20,
+      "image": "/img/Bacsilog.jpg"
+  }
+]

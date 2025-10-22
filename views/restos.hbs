@@ -1,0 +1,45 @@
+<div class="maindiv">
+
+    <div id="featured">
+        <div id="textportion">
+            <h1> Explore Taft's Culinary Landscape</h1>
+            <p>
+                Welcome to TasteTaft's Restos, your gateway to discovering the diverse
+                and delicious dining options around De La Salle University Manila.
+                Browse through the following curated selection of restaurants, cafes,
+                and eateries that have been favorites among students and locals alike
+            </p>
+        </div>
+        <div id="imageportion">
+            <img src="/img/24chix.jpg"/>
+        </div>
+    </div>
+
+    <div class="restolist-wrapper">
+        <h2 class="restos-heading">Restos</h2>
+
+        <div class="restolist">
+        {{#each restos}}
+            <a href="/restoreviews/{{this.restoID}}">
+                <div class="resto">
+                    <img src={{this.image}}>
+                    <div class="detailsbox">
+                        <div class="restoname">
+                            <h2>{{this.restoName}}</h2>
+                        </div>
+                        <div class="restodetails">
+                            <h3>{{this.restoName}}</h3> <br>
+                            <p>{{this.restoDesc}}</p>
+                            <br>
+                            <br>
+                            <h3> Rating: </h3>
+                            <br>
+                            <h2>{{this.aveRating}}</h2>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        {{/each}}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+    <div id="tastetrek-container">
+      <img id="random-image" src= {{randomResto.image}}  />
+      <div id="trektext-result">
+        <div class="namedesc">
+          <h1> {{randomResto.restoName}} </h1>
+          <h2 class="rating {{randomResto.aveRating}}">{{randomResto.aveRating}} Ratings</h2>
+          <p>
+            {{randomResto.restoDesc}}
+          </p>
+        </div>
+           
+        
+        <div class="randomizeagain">
+          <p>Doesn't fit your taste? TasteTrek again!</p>
+          <form action="/tastetrek/randomresto">
+            <input type="submit" id="trekbutton" title="Suggest Another Restaurant" value="TasteTrek"/>
+          </form>
+        </div>
+        
+        
+      </div>
+    </div>

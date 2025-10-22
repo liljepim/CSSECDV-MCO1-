@@ -1,0 +1,46 @@
+<div class="page-wrap">
+  <span class="logo big"></span>
+  <span class="logo small"></span>
+
+  <div class="login-wrap">
+    <div class="log-in">
+      <img class="text-logo" src="/img/tastetaft_text.svg" />
+      <div class="form-wrap">
+        <h1 class="bold">Sign In</h1>
+        {{#if isFailed}}
+          Incorrect credentials. Please try again.
+        {{/if}}
+        <form action="/login" method="POST" id="login-form">
+          <input
+            type="text"
+            class="input-box"
+            id="username"
+            placeholder="Username"
+            name="username"
+            required
+          />
+          <input
+            type="password"
+            class="input-box"
+            id="password"
+            placeholder="Password"
+            name="password"
+            required
+          />
+          <div class="remember-me">
+            <label class="checkbox-container">
+              Remember me
+              <input type="checkbox" name="rememberme" value="remember"/>
+              <span class="checkmark"></span>
+            </label>
+          </div>
+          <button type="submit" class="form-button">Login</button>
+        </form>
+        <div class="registerlink"><p>Don't have an account yet?</p><a
+            href="/register"
+          >Register</a></div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,61 @@
+  <div class="review-wrapper">
+        <h1>Review a Resto</h1>
+        <form action="/submit-review" method="POST">
+        <input type="hidden" name="userID" value="{{user.userID}}">
+        <input type="hidden" name="restoID" value="{{resto.restoID}}">
+
+            <div class="review-form">
+                <div class="rating-wrapper">
+                    <div class="resto-info">    
+                        <img src={{resto.image}}>
+                        <div class="resto-details">
+                            <h2>{{resto.restoName}}</h2>
+                            <h3>Taft Avenue, Manila</h3>
+                        </div>
+
+                    </div>
+
+
+                    <br>
+                    <div class="review-rating">
+                        <label for="rating">Rating:</label>
+                        <div class="rating-choices">
+                            <input type="radio" id="w" name="reviewRating" value="W">
+                            <label for="w" class="radio-label">W</label>
+
+                            <input type="radio" id="mid" name="reviewRating" value="M">
+                            <label for="mid" class="radio-label">MID</label>
+
+                            <input type="radio" id="l" name="reviewRating" value="L">
+                            <label for="l" class="radio-label">L</label>
+
+
+                        </div>
+
+                    </div>
+
+                    <div class="review-buttons">
+                        <button type="submit" id="submit-btn">Submit</button>
+                    </div>
+
+                </div>
+
+
+                <br>
+                <div class="review-container">
+                    <div class="review-content-wrapper">
+                        <label for="review">Review Title:</label>
+                        <input type="text" id="review-title" name="reviewTitle" required>
+                        <br>
+                        <label for="review">Review:</label>
+                        <textarea id="review" name="reviewContent" required class="review-textarea"></textarea>
+                        <br>
+                        <div class="file-upload">
+                            <label for="media" class="custom-button">Upload Media:</label>
+                            <input type="file" id="media" name="media" accept="image/*" multiple>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>

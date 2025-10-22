@@ -1,0 +1,50 @@
+
+<header>
+  <a href="restos"><img
+      class="logo"
+      src="/img/tastetaft_text.svg"
+      alt="logo"
+      id="logo"
+    /></a>
+  <nav>
+    <div class="search-box">
+      <form action="/search" method="GET" class="search-form" role="search">
+        <button href="/search" type="submit"><span class="search-icon"></span></button>
+        <input type="text" class="search-text" placeholder="Search" name="searchText" required 
+        oninvalid="this.setCustomValidity('Search keyword cannot be blank')"
+        oninput="this.setCustomValidity('')"/>
+      </form>
+    </div>
+    <ul class="nav_links">
+      <li><a href="/restos">Home</a></li>
+      <li><a href="/tastetrek">TasteTrek</a></li>
+    </ul>
+  </nav>
+  <div id="left-nav">
+    {{#if user}}
+    <div class="drop-down">
+      <div id="usertag">
+        <a href="/viewacc/{{user.userID}}">
+          <p class="username">{{user.userName}}</p>
+        </a>
+        <a href="/viewacc/{{user.userID}}"><img class="usericon-header" src={{user.userImage}}></a>
+      </div>
+      <div class="dropdown-content">
+          <ul>
+            <li><a href="/viewacc/{{user.userID}}">View Account</a></li>
+            <li><a href="/editlogout/{{user.userID}}">Manage Account</a></li>
+            <li><a href="/logout" id="logout-btn">Log Out</a></li>
+          </ul>
+      </div>
+    </div>
+    {{else}}
+    <div id="buttons">
+      <a class="cta-header" href="/login"><button>Login</button></a>
+      <a class="cta-header register" href="/register"><button
+          id="register"
+        >Register</button></a>
+    </div>
+    {{/if}}
+    
+  </div>
+</header>

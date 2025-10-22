@@ -1,0 +1,74 @@
+{{#each css}}
+	<link rel="stylesheet" href="/css/{{this}}.css">
+{{/each}}
+
+<div class="container">
+	<div class="reviewlist-full">
+
+		<div class="restolistlabel">
+			<h2>{{currentUser.userName}} Reviews</h2>
+			<h2><a href="/viewacc/{{currentUser.userID}}"> Back</a></h2>
+		</div>
+		
+		{{#each currentUserReviews}}
+			<div class="user-review" style="flex-direction: column">
+				
+				<div style="width: 100%">
+					<a href="/viewacc/{{this.userID}}"><img class="usericon" src="{{../currentUser.userImage}}"></a>
+
+					<div class="review">
+						<a href="/reviewdetails/{{this.reviewID}}">
+							<div class="reviewertag">
+								<h2>{{this.reviewTitle}}</h2>
+								<h3><span style="font-weight: lighter;">{{this.reviewDate}}</span></h3>
+							</div>
+
+							<div class="rating {{this.reviewRating}}">
+								{{this.reviewRating}} Resto
+							</div>
+
+							<div class="reviewpreview"> <!--This is the review preview, not full details-->
+								<h3>{{this.reviewTitle}}</h3>
+								<p>{{this.reviewContent}}</p>
+							</div>
+
+							<div class="actions-container">
+
+								<div class="helpfulornot">
+									<div><i class="fa-regular fa-thumbs-up"></i>
+										<p class="helpfulcount">{{this.helpfulCount}}</p>
+									</div>
+									<div><i class="fa-regular fa-thumbs-down"></i>
+										<p class="nothelpfulcount">{{this.notHelpfulCount}}</p>
+									</div>
+
+								</div>
+
+								<div class="actions">
+									<a href="/editreview/{{this.reviewID}}">Edit</a>
+									<a href="/delete-review/{{this.reviewID}}">Delete</a>
+
+								</div>
+							</div>
+
+						</a>
+					</div>
+				</div>
+			</div>
+		{{/each}}
+
+		{{#if currentUser.isEstablishmentOwner}}
+			<div class="restolistlabel" style="margin-top: 10px">
+				<h2>{{currentUser.userName}} Responses</h2>
+			</div>
+			
+			{{#currentUserResponses}}
+				<div class="response-item">
+					<p>{{responseContent}}</p>
+					<p class="response-date">{{responseDate}}</p>
+				</div>
+			{{/currentUserResponses}}
+		{{/if}}
+
+	</div>
+</div>

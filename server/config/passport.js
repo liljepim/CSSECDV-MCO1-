@@ -3,10 +3,9 @@ const LocalStrategy = require('passport-local').Strategy;
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const verifyCallback = (req, username, password, done) => {
-    console.log(req.body)
+    // console.log(req.body)
     User.findOne({ userName: username })
         .then((user) => {
-
             if (!user) {  return done(null, false) }
 
             bcrypt.compare(password, user.userPassword, (err, result) => {

@@ -10,6 +10,14 @@ const PORT = 3000 || process.env.PORT;
 const connectDB = require('./server/config/db');
 const Sessions = require('./server/models/Session.js')
 const bodyParser = require('body-parser');
+const https = require('https')
+const fs = require('fs')
+
+const options = {
+    key: fs.readFileSync('./certs/server.key'),
+    cert: fs.readFileSync('./certs/server.cert')
+}
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -72,7 +80,10 @@ app.use('/', require('./server/route/main.js'));
 app.use('/', require('./server/route/auth.js'))
 
 
-app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}...`);
-})
+// app.listen(PORT, () => {
+//     console.log(`Server is listening on port ${PORT}...`);
+// })
 
+https.createServer(options, app).listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}...`)
+})

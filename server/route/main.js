@@ -9,6 +9,7 @@ const multer = require('multer')
 const fs = require('fs');
 const e = require('express');
 const bcrypt = require('bcrypt');
+const { ensureAuthenticated } = require('./authcheck.js')
 require('../config/passport.js')
 //const insertusers = require('./insert.js')
 
@@ -34,6 +35,8 @@ require('../config/passport.js')
 router.use((req,res,next)=>{
   // console.log(req.user)
   console.log(req.session.cookie)
+  // console.log(req)
+  // console.log(req.isAuthenticated())
   next()
 })
 
@@ -54,7 +57,7 @@ router.get('', async (req, res) => {
     res.render('index', {css: ['styles'], user: req.user})
 })
 
-router.get('/restos', async (req, res) => {
+router.get('/restos', ensureAuthenticated, async (req, res) => {
     const restos = await Resto.find({}).sort({restoID: 1});
 
     res.render('restos', {css: ['styles2'], restos, user: req.user})

@@ -80,10 +80,10 @@ app.use('/', require('./server/route/main.js'));
 app.use('/', require('./server/route/auth.js'))
 
 
-// app.listen(PORT, () => {
-//     console.log(`Server is listening on port ${PORT}...`);
-// })
-
-https.createServer(options, app).listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}...`)
+app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}...`);
 })
+
+// https.createServer(options, app).listen(PORT, () => {
+//     console.log(`Server is listening on port ${PORT}...`)
+// })

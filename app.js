@@ -13,11 +13,12 @@ const bodyParser = require('body-parser');
 const https = require('https')
 const fs = require('fs')
 
+/*
 const options = {
     key: fs.readFileSync('./certs/server.key'),
     cert: fs.readFileSync('./certs/server.cert')
 }
-
+*/
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

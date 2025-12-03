@@ -22,22 +22,28 @@
   </nav>
   <div id="left-nav">
     {{#if user}}
-    <div class="drop-down">
-      <div id="usertag">
-        <a href="/viewacc/{{user.userID}}">
-          <p class="username">{{user.userName}}</p>
+<div class="drop-down">
+    <div id="usertag">
+        <a href="{{#if user.isAdmin}}/admin{{else}}/viewacc/{{user.userID}}{{/if}}">
+            <p class="username">{{user.userName}}</p>
         </a>
-        <a href="/viewacc/{{user.userID}}"><img class="usericon-header" src={{user.userImage}}></a>
-      </div>
-      <div class="dropdown-content">
-          <ul>
-            <li><a href="/viewacc/{{user.userID}}">View Account</a></li>
-            <li><a href="/editlogout/{{user.userID}}">Manage Account</a></li>
-            <li><a href="/logout" id="logout-btn">Log Out</a></li>
-          </ul>
-      </div>
+        <a href="{{#if user.isAdmin}}/admin{{else}}/viewacc/{{user.userID}}{{/if}}">
+            <img class="usericon-header" src="{{#if user.userImage}}{{user.userImage}}{{else}}{{user.adminImage}}{{/if}}">
+        </a>
     </div>
-    {{else}}
+    <div class="dropdown-content">
+        <ul>
+            {{#if user.isAdmin}}
+                <li><a href="/admin">Admin Dashboard</a></li>
+            {{else}}
+                <li><a href="/viewacc/{{user.userID}}">View Account</a></li>
+                <li><a href="/editlogout/{{user.userID}}">Manage Account</a></li>
+            {{/if}}
+            <li><a href="/logout" id="logout-btn">Log Out</a></li>
+        </ul>
+    </div>
+</div>
+{{else}}
     <div id="buttons">
       <a class="cta-header" href="/login"><button>Login</button></a>
       <a class="cta-header register" href="/register"><button

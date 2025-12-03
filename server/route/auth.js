@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt');
 const { loadEnvFile } = require('process');
 const Sessions = require('../models/Session');
 require('../config/passport.js')
+const Admin = require('../models/Admin');
 
 // router.use(async (req,res,next) => {
 //   console.log(req.session);
@@ -34,15 +35,6 @@ const storage = multer.diskStorage({
   }).single('image')
   
 
-  router.post('/login', passport.authenticate('local', { failureRedirect: '/login-failed' }), function(req, res) {
-    // If "remember me" is checked, set a longer session duration
-    if (req.body.rememberme) {
-      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-    } else {
-      req.session.cookie.expires = false; // Session expires when browser is closed
-    }
-    res.redirect('/');
-  });
 
 router.get('/login', async (req, res) => {
     if(req.user){
@@ -50,6 +42,40 @@ router.get('/login', async (req, res) => {
     }
     res.render('login', {layout: 'loginregister', css: ['styles_j']})
 })
+
+
+router.post('/login', passport.authenticate('local', { failureRedirect: '/login-failed' }), function(req, res) {
+    // If "remember me" is checked, set a longer session duration
+    if (req.body.rememberme) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+    } else {
+        req.session.cookie.expires = false; // Session expires when browser is closed
+    }
+    
+    // Check if the authenticated user is an admin
+    if (req.user && req.user.isAdmin) {
+        // Redirect to admin page
+        res.redirect('/admin');
+    } else {
+        // Redirect regular users to home page
+        res.redirect('/');
+    }
+});
+
+router.get('/admin', async (req, res) => {
+    // Check if user is authenticated and is admin
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+        return res.redirect('/login');
+    }
+    
+    // render admin page
+    res.render('admin', { 
+        css: ['styles2'], 
+        user: req.user,
+        isAdmin: true 
+    });
+});
+
 
 
 router.get('/login-failed', async (req, res) => {

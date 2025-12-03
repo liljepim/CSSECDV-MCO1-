@@ -11,6 +11,7 @@ const e = require('express');
 const bcrypt = require('bcrypt');
 const { ensureAuthenticated } = require('./authcheck.js')
 require('../config/passport.js')
+const Admin = require('../models/Admin');
 //const insertusers = require('./insert.js')
 
 // router.use(async (req,res,next) => {
@@ -546,6 +547,176 @@ router.post('/reviews/respond', async (req, res) => {
     }
 });
 
+
+
+// =================== RESTAURANT CRUD ROUTES ===================
+// Get all restaurants for admin 
+router.get('/admin/restaurants', ensureAuthenticated, async (req, res) => {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const restaurants = await Resto.find({})
+            .sort({ restoID: 1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Resto.countDocuments();
+        const totalPages = Math.ceil(total / limit);
+
+        res.json({
+            restaurants,
+            currentPage: page,
+            totalPages,
+            totalItems: total
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get single restaurant for editing
+router.get('/admin/restaurants/:id', ensureAuthenticated, async (req, res) => {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    try {
+        const restaurant = await Resto.findOne({ restoID: req.params.id });
+        if (!restaurant) {
+            return res.status(404).json({ message: 'Restaurant not found' });
+        }
+        res.json(restaurant);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Create new restaurant
+router.post('/admin/restaurants', upload, ensureAuthenticated, async (req, res) => {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    try {
+        const { restoName, restoDesc, aveRating } = req.body;
+        let filename = "";
+        
+        if (req.file) {
+            filename = "/img/" + req.file.filename;
+        }
+
+        // Generate new restoID
+        const lastResto = await Resto.findOne().sort({ restoID: -1 });
+        const newRestoID = lastResto ? lastResto.restoID + 1 : 1;
+
+        const newResto = new Resto({
+            restoID: newRestoID,
+            restoName,
+            restoDesc,
+            aveRating: aveRating || 'M',
+            W_ratings: 0,
+            L_ratings: 0,
+            M_ratings: 0,
+            image: filename || "/img/default-restaurant.jpg"
+        });
+
+        await newResto.save();
+        res.json({ 
+            message: 'Restaurant created successfully', 
+            restaurant: newResto 
+        });
+    } catch (error) {
+        console.error(error);
+        if (req.file) {
+            fs.unlink('./public/img/' + req.file.filename, (err) => {
+                if (err) console.error('Error deleting file:', err);
+            });
+        }
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Update restaurant
+router.put('/admin/restaurants/:id', upload, ensureAuthenticated, async (req, res) => {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    try {
+        const { restoName, restoDesc, aveRating } = req.body;
+        let filename = "";
+        
+        if (req.file) {
+            filename = "/img/" + req.file.filename;
+        }
+
+        const updateData = {
+            restoName,
+            restoDesc,
+            aveRating
+        };
+
+        if (filename) {
+            updateData.image = filename;
+        }
+
+        const updatedResto = await Resto.findOneAndUpdate(
+            { restoID: req.params.id },
+            updateData,
+            { new: true }
+        );
+
+        if (!updatedResto) {
+            return res.status(404).json({ message: 'Restaurant not found' });
+        }
+
+        res.json({ 
+            message: 'Restaurant updated successfully', 
+            restaurant: updatedResto 
+        });
+    } catch (error) {
+        console.error(error);
+        if (req.file) {
+            fs.unlink('./public/img/' + req.file.filename, (err) => {
+                if (err) console.error('Error deleting file:', err);
+            });
+        }
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete restaurant
+router.delete('/admin/restaurants/:id', ensureAuthenticated, async (req, res) => {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    try {
+        const restaurant = await Resto.findOneAndDelete({ restoID: req.params.id });
+        
+        if (!restaurant) {
+            return res.status(404).json({ message: 'Restaurant not found' });
+        }
+
+        // Also delete associated reviews
+        await Review.deleteMany({ restoID: parseInt(req.params.id) });
+
+        res.json({ 
+            message: 'Restaurant deleted successfully' 
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 
 /** 

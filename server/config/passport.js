@@ -4,6 +4,9 @@ const User = require('../models/User');
 const Admin = require('../models/Admin');
 const bcrypt = require('bcrypt');
 
+const maxAttempts = 5;
+const lockTime = 30 * 60 * 1000; // 30 minutes
+
 const verifyCallback = (req, username, password, done) => {
     // check if it's an admin
     Admin.findOne({ adminName: username })
@@ -41,17 +44,45 @@ const checkRegularUser = (username, password, done) => {
                 return done(null, false);
             }
 
+            if (user.isLocked && user.lockUntil > Date.now()) {
+                console.log(`[Login] Account Lockout ${username}. Attempts: ${user.loginAttempts}`);
+                return done(null, false, { message: "Account temporarily locked" });
+            }
+
+            if (user.isLocked && user.lockUntil <= Date.now()) {
+                user.isLocked = false;
+                user.loginAttempts = 0;
+                user.lockUntil = null;
+            }
+
             bcrypt.compare(password, user.userPassword, (err, result) => {
                 if (result) {
-                    return done(null, user);
+  
+                
+                      user.loginAttempts = 0;
+                      user.isLocked = false;
+                      user.lockUntil = null;
+                      return user.save().then(() => done(null, user));
+                   
+              
                 } else {
-                    return done(null, false);
+                    user.loginAttempts += 1;
+                        if (user.loginAttempts >= maxAttempts) {
+                            user.isLocked = true;
+                            user.lockUntil = Date.now() + lockTime;
+                        }
+
+                    return user.save().then(() => done(null, false, { message: "Invalid password" }));
                 }
+                
             });
+  
         })
+        
         .catch((err) => {
             done(err);
         });
+
 };
 
 const strategy = new LocalStrategy({ passReqToCallback: true }, verifyCallback);

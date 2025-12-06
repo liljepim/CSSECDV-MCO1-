@@ -34,8 +34,7 @@ const UserSchema = new mongoose.Schema({
     lockUntil: {
         type: Date,
         default: null
-    }
-
+    },
     question1: {
         type: String,
         required: true

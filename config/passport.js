@@ -78,7 +78,7 @@ const checkModerator = (req, username, password, done) => {
             console.log(`[Login] Found moderator: ${moderator.moderatorName}`);
             console.log(`[Login] Input password: "${password}", Stored password: "${moderator.moderatorPassword}"`);
             
-            // Compare plain text passwords for moderators 
+            // Compare plain text passwords for moderators (as per your schema)
             if (password === moderator.moderatorPassword) {
                 console.log(`[Login] Password correct for moderator: ${username}`);
                 const modUser = {
@@ -111,7 +111,7 @@ const verifyCallback = (req, username, password, done) => {
                 console.log(`[Login] Found admin: ${admin.adminName}`);
                 console.log(`[Login] Input password: "${password}", Stored password: "${admin.adminPassword}"`);
                 
-                // Compare plain text passwords for admins
+                // Compare plain text passwords for admins (as per your schema)
                 if (password === admin.adminPassword) {
                     console.log(`[Login] Password correct for admin: ${username}`);
                     const adminUser = {

@@ -35,7 +35,6 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-
     question1: {
         type: String,
         required: true
@@ -59,7 +58,7 @@ const UserSchema = new mongoose.Schema({
     answer3: {
         type: String,
         required: true
-    },
+    }
 });
 
 const User = mongoose.model('User', UserSchema);

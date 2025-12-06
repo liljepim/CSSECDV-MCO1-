@@ -78,31 +78,20 @@ router.get('/admin', async (req, res) => {
     });
 });
 
-router.get('/register', async (req, res) => {
-    if (req.user) {
-        return res.redirect('/');
-    }
-
-    res.render("register", {
-        layout: "loginregister",
-        css: ["styles_j"]
-    });
-});
-
 
 router.get('/moderator', ensureAuthenticated, async (req, res) => {
     // Check if user is authenticated and is moderator
     if (!req.isAuthenticated() || !req.user.isModerator) {
         return res.redirect('/login');
-    }
-
+    }  // <-- ADDED THIS CLOSING BRACE
+    
     try {
-        // Fetch all reviews
+        // Fetch all reviews from the database
         const reviews = await Review.find({})
-            .sort({ reviewDate: -1 })
-            .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate');
-
-        // Render moderator page
+            .sort({ reviewDate: -1 }) // Sort by most recent first
+            .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate') // Select only needed fields
+        
+        // render moderator page with reviews
         res.render('moderator', { 
             css: ['styles2'], 
             user: req.user,
@@ -111,7 +100,6 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
             success_msg: req.flash('success_msg'),
             error_msg: req.flash('error_msg')
         });
-
     } catch (error) {
         console.error('Error fetching reviews:', error);
         req.flash('error_msg', 'Error loading reviews');
@@ -123,6 +111,18 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
             error_msg: req.flash('error_msg')
         });
     }
+});
+
+// /register ROUTE
+router.get('/register', async (req, res) => {
+    if (req.user) {
+        return res.redirect('/');
+    }
+
+    res.render("register", {
+        layout: "loginregister",
+        css: ["styles_j"]
+    });
 });
 
 
@@ -232,6 +232,6 @@ router.get('/logout', (req, res, next) => {
         if (err) {return next(err)};
         res.redirect('/');
     });
-  })
+})
 
 module.exports  = router;

@@ -83,6 +83,9 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
     // Check if user is authenticated and is moderator
     if (!req.isAuthenticated() || !req.user.isModerator) {
         return res.redirect('/login');
+router.get('/register', async (req, res) => {
+    if(req.user){
+        res.redirect('/')
     }
     
     try {

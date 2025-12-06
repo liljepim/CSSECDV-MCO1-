@@ -2,7 +2,6 @@
   "ext": "js,hbs",
   "watch": [
     "app.js",
-    "route",
     "server",
     "views"
   ]

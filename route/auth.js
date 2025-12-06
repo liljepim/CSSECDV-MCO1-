@@ -79,11 +79,56 @@ router.get('/admin', async (req, res) => {
 });
 
 
+
+
 router.get('/moderator', ensureAuthenticated, async (req, res) => {
     // Check if user is authenticated and is moderator
     if (!req.isAuthenticated() || !req.user.isModerator) {
         return res.redirect('/login');
-    }  // <-- ADDED THIS CLOSING BRACE
+    }
+    
+    try {
+        // fetch all reviews from the database for moderation
+        const reviews = await Review.find({})
+            .sort({ reviewDate: -1 }) // Sort by most recent first
+            .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate helpfulCount notHelpfulCount') // Select needed fields
+        
+        // get user information for each review
+        const reviewsWithUsers = await Promise.all(reviews.map(async (review) => {
+            const user = await User.findOne({ userID: review.userID });
+            return {
+                ...review.toObject(),
+                userName: user ? user.userName : 'Unknown User',
+                userImage: user ? user.userImage : ''
+            };
+        }));
+
+        res.render('moderator', { 
+            css: ['styles2'], 
+            user: req.user,
+            isModerator: true,
+            reviews: reviewsWithUsers || [],
+            success_msg: req.flash('success_msg'),
+            error_msg: req.flash('error_msg')
+        });
+    } catch (error) {
+        console.error('Error loading moderator page:', error);
+        req.flash('error_msg', 'Error loading moderator page');
+        res.render('moderator', { 
+            css: ['styles2'], 
+            user: req.user,
+            isModerator: true,
+            reviews: [],
+            error_msg: req.flash('error_msg')
+        });
+    }
+});
+
+
+router.get('/register', async (req, res) => {
+    if(req.user){
+        res.redirect('/')
+    }
     
     try {
         // Fetch all reviews from the database
@@ -113,18 +158,14 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
     }
 });
 
-// /register ROUTE
+
+
 router.get('/register', async (req, res) => {
-    if (req.user) {
+    if(req.user){
         return res.redirect('/');
     }
-
-    res.render("register", {
-        layout: "loginregister",
-        css: ["styles_j"]
-    });
+    res.render('register', { layout: 'loginregister', css: ['styles_j'], errors: [],success_msg: req.flash('success_msg'),error_msg: req.flash('error_msg')});
 });
-
 
 router.post('/moderator/delete-review/:reviewID', ensureAuthenticated, async (req, res) => {
     // check if user is authenticated and is moderator

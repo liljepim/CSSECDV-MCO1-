@@ -58,7 +58,7 @@ const UserSchema = new mongoose.Schema({
     answer3: {
         type: String,
         required: true
-    }
+    },
 });
 
 const User = mongoose.model('User', UserSchema);

@@ -9,6 +9,8 @@
         <h1 class="bold">Sign In</h1>
         {{#if isFailed}}
           Incorrect credentials. Please try again.
+        {{else if lockMinutes}}
+          Too many attempts, Try again in {{lockMinutes}}m {{lockSeconds}}s. 
         {{/if}}
         <form action="/login" method="POST" id="login-form">
           <input

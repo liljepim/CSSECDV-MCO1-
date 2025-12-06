@@ -27,7 +27,7 @@ const verifyCallback = (req, username, password, done) => {
                 }
             } else {
                 // not an admin check regular user
-                return checkRegularUser(username, password, done);
+                return checkRegularUser(req, username, password, done);
             }
         })
         .catch((err) => {
@@ -37,7 +37,7 @@ const verifyCallback = (req, username, password, done) => {
 };
 
 // helper function to check regular users
-const checkRegularUser = (username, password, done) => {
+const checkRegularUser = (req, username, password, done) => {
     User.findOne({ userName: username })
         .then((user) => {
             if (!user) {
@@ -45,8 +45,12 @@ const checkRegularUser = (username, password, done) => {
             }
 
             if (user.isLocked && user.lockUntil > Date.now()) {
+                 const msLeft = user.lockUntil - Date.now();
+                 const minutes = Math.floor(msLeft / 60000);
+                 const seconds = Math.floor((msLeft % 60000) / 1000);
                 console.log(`[Login] Account Lockout ${username}. Attempts: ${user.loginAttempts}`);
-                return done(null, false, { message: "Account temporarily locked" });
+                req.session.lockInfo = { username, minutes, seconds };
+                return done(null, false, {locked: true, minutes, seconds});
             }
 
             if (user.isLocked && user.lockUntil <= Date.now()) {
@@ -57,14 +61,10 @@ const checkRegularUser = (username, password, done) => {
 
             bcrypt.compare(password, user.userPassword, (err, result) => {
                 if (result) {
-  
-                
                       user.loginAttempts = 0;
                       user.isLocked = false;
                       user.lockUntil = null;
                       return user.save().then(() => done(null, user));
-                   
-              
                 } else {
                     user.loginAttempts += 1;
                         if (user.loginAttempts >= maxAttempts) {

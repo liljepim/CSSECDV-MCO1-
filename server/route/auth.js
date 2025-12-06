@@ -145,16 +145,15 @@ router.post('/moderator/delete-review/:reviewID', ensureAuthenticated, async (re
 
 
 router.get('/login-failed', async (req, res) => {
-    res.render('login', {layout: 'loginregister', css: ['styles_j'], isFailed: true})
-})
+  //essentially if lockInfo exists, username being tried is locked
+    const lockInfo = req.session.lockInfo;
+    const isLocked = !!lockInfo;
 
-router.get('/register', async (req, res) => {
-    
-    if(req.user){
-        res.redirect('/')
-    }
-    res.render('register', {layout: 'loginregister', css: ['styles_j']})
-})
+    if (isLocked) delete req.session.lockInfo;
+
+    res.render('login', {layout: 'loginregister',css: ['styles_j'],isFailed: !isLocked, lockMinutes: lockInfo?.minutes || 0, lockSeconds: lockInfo?.seconds || 0});
+});
+
 
 router.post('/register', upload, async (req, res) => {
     const users = await User.find({}).sort({_id: -1})

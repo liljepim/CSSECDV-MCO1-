@@ -23,6 +23,19 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: null
     },
+    loginAttempts: {
+        type: Number,
+        default: 0
+    },
+    isLocked: {
+        type: Boolean,
+        default: false
+    },
+    lockUntil: {
+        type: Date,
+        default: null
+    }
+
 });
 
 const User = mongoose.model('User', UserSchema);

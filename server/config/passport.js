@@ -5,6 +5,9 @@ const Admin = require('../models/Admin');
 const Moderator = require('../models/Moderator'); // Add this line
 const bcrypt = require('bcrypt');
 
+const maxAttempts = 5;
+const lockTime = 30 * 60 * 1000; // 30 minutes
+
 const verifyCallback = (req, username, password, done) => {
     // First check if it's an admin
     Admin.findOne({ adminName: username })
@@ -26,8 +29,8 @@ const verifyCallback = (req, username, password, done) => {
                     return checkModerator(username, password, done);
                 }
             } else {
-                // not an admin, check moderator
-                return checkModerator(username, password, done);
+                // not an admin check regular user
+                return checkRegularUser(req, username, password, done);
             }
         })
         .catch((err) => {
@@ -67,31 +70,53 @@ const checkModerator = (username, password, done) => {
         });
 };
 
-// helper function to check regular users (unchanged)
-const checkRegularUser = (username, password, done) => {
+// helper function to check regular users
+const checkRegularUser = (req, username, password, done) => {
     User.findOne({ userName: username })
         .then((user) => {
             if (!user) {
                 return done(null, false);
             }
 
+            if (user.isLocked && user.lockUntil > Date.now()) {
+                 const msLeft = user.lockUntil - Date.now();
+                 const minutes = Math.floor(msLeft / 60000);
+                 const seconds = Math.floor((msLeft % 60000) / 1000);
+                console.log(`[Login] Account Lockout ${username}. Attempts: ${user.loginAttempts}`);
+                req.session.lockInfo = { username, minutes, seconds };
+                return done(null, false, {locked: true, minutes, seconds});
+            }
+
+            if (user.isLocked && user.lockUntil <= Date.now()) {
+                user.isLocked = false;
+                user.loginAttempts = 0;
+                user.lockUntil = null;
+            }
+
             bcrypt.compare(password, user.userPassword, (err, result) => {
                 if (result) {
-                    const regularUser = {
-                        ...user._doc,
-                        isAdmin: false,
-                        isModerator: false,
-                        userType: 'user'
-                    };
-                    return done(null, regularUser);
+                      user.loginAttempts = 0;
+                      user.isLocked = false;
+                      user.lockUntil = null;
+                      return user.save().then(() => done(null, user));
                 } else {
-                    return done(null, false);
+                    user.loginAttempts += 1;
+                        if (user.loginAttempts >= maxAttempts) {
+                            user.isLocked = true;
+                            user.lockUntil = Date.now() + lockTime;
+                        }
+
+                    return user.save().then(() => done(null, false, { message: "Invalid password" }));
                 }
+                
             });
+  
         })
+        
         .catch((err) => {
             done(err);
         });
+
 };
 
 const strategy = new LocalStrategy({ passReqToCallback: true }, verifyCallback);

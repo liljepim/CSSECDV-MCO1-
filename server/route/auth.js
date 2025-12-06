@@ -84,13 +84,6 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
     if (!req.isAuthenticated() || !req.user.isModerator) {
         return res.redirect('/login');
     }
-});
-
-
-router.get('/register', async (req, res) => {
-    if(req.user){
-        res.redirect('/')
-    }
     
     try {
         // Fetch all reviews from the database
@@ -120,6 +113,14 @@ router.get('/register', async (req, res) => {
     }
 });
 
+
+
+router.get('/register', async (req, res) => {
+    if(req.user){
+        return res.redirect('/');
+    }
+    res.render('register', { layout: 'loginregister', css: ['styles_j'], errors: [],success_msg: req.flash('success_msg'),error_msg: req.flash('error_msg')});
+});
 
 router.post('/moderator/delete-review/:reviewID', ensureAuthenticated, async (req, res) => {
     // check if user is authenticated and is moderator

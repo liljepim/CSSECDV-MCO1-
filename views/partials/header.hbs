@@ -1,4 +1,3 @@
-
 <header>
   <a href="restos"><img
       class="logo"
@@ -24,17 +23,19 @@
     {{#if user}}
 <div class="drop-down">
     <div id="usertag">
-        <a href="{{#if user.isAdmin}}/admin{{else}}/viewacc/{{user.userID}}{{/if}}">
+        <a href="{{#if user.isAdmin}}/admin{{else if user.isModerator}}/moderator{{else}}/viewacc/{{user.userID}}{{/if}}">
             <p class="username">{{user.userName}}</p>
         </a>
-        <a href="{{#if user.isAdmin}}/admin{{else}}/viewacc/{{user.userID}}{{/if}}">
-            <img class="usericon-header" src="{{#if user.userImage}}{{user.userImage}}{{else}}{{user.adminImage}}{{/if}}">
+        <a href="{{#if user.isAdmin}}/admin{{else if user.isModerator}}/moderator{{else}}/viewacc/{{user.userID}}{{/if}}">
+            <img class="usericon-header" src="{{#if user.userImage}}{{user.userImage}}{{else if user.adminImage}}{{user.adminImage}}{{else}}/img/default-avatar.png{{/if}}">
         </a>
     </div>
     <div class="dropdown-content">
         <ul>
             {{#if user.isAdmin}}
                 <li><a href="/admin">Admin Dashboard</a></li>
+            {{else if user.isModerator}}
+                <li><a href="/moderator">Moderator Dashboard</a></li>
             {{else}}
                 <li><a href="/viewacc/{{user.userID}}">View Account</a></li>
                 <li><a href="/editlogout/{{user.userID}}">Manage Account</a></li>

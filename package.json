@@ -25,7 +25,9 @@
     "passport-local": "^1.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "browser-sync": "^3.0.4",
+    "nodemon": "^3.1.0",
+    "reload": "^3.4.2"
   },
   "description": ""
 }

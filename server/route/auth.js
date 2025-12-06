@@ -83,6 +83,9 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
     // Check if user is authenticated and is moderator
     if (!req.isAuthenticated() || !req.user.isModerator) {
         return res.redirect('/login');
+router.get('/register', async (req, res) => {
+    if(req.user){
+        res.redirect('/')
     }
     
     try {
@@ -157,8 +160,8 @@ router.get('/login-failed', async (req, res) => {
 
 router.post('/register', upload, async (req, res) => {
     const users = await User.find({}).sort({_id: -1})
-    lastID = users[0].userID;
-    const { username, password, password2, description} = req.body
+    lastID = users[0]?.userID || 0;
+    const { username, password, password2, description, security1, security2, security3, answer1, answer2, answer3 } = req.body
     let errors = []
     let success = false
     let filename = ""
@@ -166,13 +169,16 @@ router.post('/register', upload, async (req, res) => {
     if(req.file){
       filename = "/img/" + req.file.filename
     }
+
     if(await User.findOne({userName: username})){
       console.log("Existing")
       errors.push("Username Already Taken")
     }
+
     if(password !== password2){
       errors.push("Password does not match")
     }
+
     console.log(errors.length)
     if(errors.length > 0){
       if(req.file){
@@ -188,13 +194,19 @@ router.post('/register', upload, async (req, res) => {
       let hashedPassword = ""
       bcrypt.genSalt(10, (err,salt) => {
         genSalt = salt
-        bcrypt.hash(password, salt, (err, hash) => {
+      bcrypt.hash(password, salt, (err, hash) => {
           const newUser = new User({
             userID: lastID + 1,
             userName: username,
             userPassword: hash,
             userDesc: description,
-            userImage: filename
+            userImage: filename,
+            question1: security1, 
+            question2: security2, 
+            question3: security3, 
+            answer1: answer1, 
+            answer2: answer2, 
+            answer3: answer3
           })
           newUser.save()
         })

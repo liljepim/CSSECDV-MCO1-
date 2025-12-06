@@ -12,6 +12,7 @@ const bcrypt = require('bcrypt');
 const { ensureAuthenticated } = require('./authcheck.js')
 require('../config/passport.js')
 const Admin = require('../models/Admin');
+const Moderator = require('../models/Moderator');
 //const insertusers = require('./insert.js')
 
 // router.use(async (req,res,next) => {
@@ -549,8 +550,8 @@ router.post('/reviews/respond', async (req, res) => {
 
 
 
-// =================== RESTAURANT CRUD ROUTES ===================
-// Get all restaurants for admin 
+// RESTAURANT CRUD ROUTES 
+// get all restaurants for admin 
 router.get('/admin/restaurants', ensureAuthenticated, async (req, res) => {
     if (!req.user || !req.user.isAdmin) {
         return res.status(403).json({ message: 'Forbidden' });
@@ -581,7 +582,7 @@ router.get('/admin/restaurants', ensureAuthenticated, async (req, res) => {
     }
 });
 
-// Get single restaurant for editing
+// get single restaurant for editing
 router.get('/admin/restaurants/:id', ensureAuthenticated, async (req, res) => {
     if (!req.user || !req.user.isAdmin) {
         return res.status(403).json({ message: 'Forbidden' });
@@ -599,7 +600,7 @@ router.get('/admin/restaurants/:id', ensureAuthenticated, async (req, res) => {
     }
 });
 
-// Create new restaurant
+// create new restaurant
 router.post('/admin/restaurants', upload, ensureAuthenticated, async (req, res) => {
     if (!req.user || !req.user.isAdmin) {
         return res.status(403).json({ message: 'Forbidden' });

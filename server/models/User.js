@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+
+const PasswordHistorySchema = new mongoose.Schema({
+    passwordHash: { type: String, required: true },
+    changedAt: { type: Date, default: Date.now }  
+});
+
 const UserSchema = new mongoose.Schema({
     userID: {
         type: Number,
@@ -59,6 +65,15 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    passwordHistory: {
+        type: [PasswordHistorySchema],
+        default: []
+    },
+    passwordLastChanged: {
+        type: Date,
+        default: Date.now
+    },
+
 });
 
 const User = mongoose.model('User', UserSchema);

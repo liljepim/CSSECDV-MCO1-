@@ -97,6 +97,9 @@ app.use((req, res, next) => {
 
 app.use('/', require('./server/route/main.js'));
 app.use('/', require('./server/route/auth.js'))
+app.use((req, res) => {
+    res.render('notfound', { css: ["notfound"]})
+})
 
 
 app.listen(PORT, () => {

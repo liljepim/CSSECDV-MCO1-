@@ -13,7 +13,9 @@
   --tertiary-color: #fff;
   --quaternary-color: #EBE702;
 }
-
+html {
+  height: 100%;
+}
 body {
   display: flex;
   flex-direction: column;
@@ -308,6 +310,21 @@ p {
   margin-bottom: 20px;
   line-height: 30px;
 }
+.whoops-wrapper {
+  width: 100%;
+  min-height: 100%;
+  margin:  auto 0;
+}
+.whoops{
+  display: block;
+  background-image: url("/img/whoops.svg");
+  background-repeat: no-repeat;
+  background-position: center center;
+  z-index: 1;
+  background-size: contain;
+  height: 90vh;
+  width: 90vh;
 
+}
 
 

@@ -1,5 +1,11 @@
 <div class="maindiv">
-
+    {{#if lastLogin}}
+    <div id="login-notification" 
+        style="cursor:pointer; background-color: {{#if (eq lastLogin.status 'Successful')}}#1890ff{{else}}#ff4d4f{{/if}}; color:white; padding:10px; border-radius:5px; margin-bottom:10px; text-align:center;"
+        onclick="this.style.display='none';">
+        Last Login: {{lastLogin.date}} ({{lastLogin.status}})
+    </div>
+    {{/if}}
     <div id="featured">
         <div id="textportion">
             <h1> Explore Taft's Culinary Landscape</h1>

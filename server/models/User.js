@@ -6,6 +6,18 @@ const PasswordHistorySchema = new mongoose.Schema({
     changedAt: { type: Date, default: Date.now }  
 });
 
+const LoginHistorySchema = new mongoose.Schema({
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    status: {
+        type: String,
+        enum: ['Successful', 'Failed'],
+        required: true
+    }
+});
+
 const UserSchema = new mongoose.Schema({
     userID: {
         type: Number,
@@ -73,6 +85,10 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+
+    loginHistory:{ 
+    type: [LoginHistorySchema]
+    }
 
 });
 

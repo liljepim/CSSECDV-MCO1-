@@ -490,18 +490,39 @@ function formatDate(dateString) {
 router.post('/submit-review', async (req, res) => {
   try {
     const { reviewTitle, reviewContent, reviewRating } = req.body;
-    const reviewID = await generateReviewID(); // Generate unique review ID
+    
+    // Server-side validation
+    if (!reviewRating || !['W', 'M', 'L'].includes(reviewRating)) {
+      console.log('Invalid rating:', reviewRating);
+      return res.status(400).send('Invalid rating selected');
+    }
+    
+    if (reviewTitle.length > 50) {
+      return res.status(400).send('Title must be 50 characters or less');
+    }
+    
+    if (reviewContent.length > 150) {
+      return res.status(400).send('Review content must be 150 characters or less');
+    }
+    
+    // Check for special characters in title
+    const specialCharRegex = /[^a-zA-Z0-9\s]/;
+    if (specialCharRegex.test(reviewTitle)) {
+      return res.status(400).send('Title can only contain letters and numbers');
+    }
+    
+    const reviewID = await generateReviewID();
     const originalDate = new Date().toISOString();
     const review = new Review({
       reviewID,
-      userID: req.user.userID, // You need to provide userID in the form or fetch it from somewhere
-      restoID: req.body.restoID, // You need to provide restoID in the form or fetch it from somewhere
+      userID: req.user.userID,
+      restoID: req.body.restoID,
       reviewTitle,
       reviewContent,
-      
       reviewDate: formatDate(originalDate),
       reviewRating,
     });
+    
     await review.save();
     res.redirect('/restoreviews/' + req.body.restoID);
   } catch (error) {
@@ -516,16 +537,32 @@ router.post('/edit-review/:reviewID', async (req, res) => {
     const reviewID = req.params.reviewID;
     const { reviewTitle, reviewContent, reviewRating, isEdited} = req.body;
     
-    // Assuming you have a Review model defined
+    if (!reviewRating || !['W', 'M', 'L'].includes(reviewRating)) {
+      console.log('Invalid rating:', reviewRating);
+      return res.status(400).send('Invalid rating selected');
+    }
+    
+    if (reviewTitle.length > 50) {
+      return res.status(400).send('Title must be 50 characters or less');
+    }
+    
+    if (reviewContent.length > 150) {
+      return res.status(400).send('Review content must be 150 characters or less');
+    }
+    const specialCharRegex = /[^a-zA-Z0-9\s]/;
+    if (specialCharRegex.test(reviewTitle)) {
+      return res.status(400).send('Title can only contain letters and numbers');
+    }
+    
     const review = await Review.findOneAndUpdate(
-      { reviewID: reviewID }, // Query to find the review by its ID
+      { reviewID: reviewID },
       {
         reviewTitle: reviewTitle,
         reviewContent: reviewContent,
         reviewRating: reviewRating,
-        isEdited: isEdited // Set isEdited to true
+        isEdited: isEdited
       },
-      { new: true } // To return the updated review
+      { new: true }
     );
 
     if (!review) {
@@ -533,7 +570,6 @@ router.post('/edit-review/:reviewID', async (req, res) => {
     }
     
     res.redirect('/restoreviews/' + review.restoID);
-    console.log(review);
   } catch (error) {
     console.error(error);
     res.status(500).send('Error editing review');

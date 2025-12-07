@@ -42,7 +42,7 @@ router.get('/login', async (req, res) => {
     if(req.user){
         res.redirect('/')
     }
-    res.render('login', {layout: 'loginregister', css: ['styles_j']})
+    res.render('login', {layout: 'loginregister', css: ['styles_j'], alert: req.query.alert || null})
 })
 
 
@@ -68,7 +68,70 @@ router.get('/forget', async (req, res) => {
     if(req.user){
         res.redirect('/')
     }
-    res.render('forget-pass', {layout: 'loginregister', css: ['styles_j']})
+    res.render('forget-pass', {layout: 'loginregister', css: ['styles_j'], error: req.query.error || null})
+})
+
+router.post('/forget', async (req, res) => {
+    const { username } = req.body
+    console.log(username)
+    const user = await User.findOne({ userName: username})
+    if (!user) {
+        return res.redirect('/forget?error=User+not+found')
+    }
+    req.session.resetUser = user.userName
+    res.redirect('/security-questions')
+});
+
+router.get('/security-questions', async (req, res) => {
+    if (!req.session.resetUser) {
+        res.redirect('/forget')
+    }
+    const user = await User.findOne({ userName: req.session.resetUser})
+    const securityQuestions = [user.question1, user.question2, user.question3]
+    const securityAnswers = [user.answer1, user.answer2, user.answer3]
+    const n = Math.floor(Math.random() * 3);
+
+    req.session.answer=securityAnswers[n]
+
+    res.render('security-questions', { layout: 'loginregister', css: ['styles_j'], question: securityQuestions[n], error:req.query.error || null})
+})
+
+router.post('/security-questions', async (req, res) => {
+    const { answer } = req.body;
+
+    if(answer === req.session.answer) {
+        return res.redirect('change')
+    }
+    res.redirect('/security-questions?error=Incorrect+answer.')
+})
+
+router.get('/change', async (req, res) => {
+    if(!req.session.resetUser) {
+         return res.redirect('/forget')
+    }
+    const user = await User.findOne({ userName: req.session.resetUser})
+    res.render('reset-password', { layout: 'loginregister', css: ['styles_j']})
+})
+
+router.post('/change', async (req, res) => {
+    if(!req.session.resetUser) {
+         return res.redirect('/forget')
+    }
+
+    const { password, password2 } = req.body;
+    console.log(password)
+    try {
+        const salt = await bcrypt.genSalt(10)
+        const hashedPassword = await bcrypt.hash(password, salt)
+
+        const updatedUser = await User.findOneAndUpdate( { userName: req.session.resetUser}, { password: hashedPassword }, { new: true })
+
+        return res.redirect('/login?alert=Password+Reset+Succesful')
+
+    } catch(err) {
+        console.log(err)
+        res.status(500).send("Error Updating Password")
+    }
 })
 
 router.get('/admin', async (req, res) => {

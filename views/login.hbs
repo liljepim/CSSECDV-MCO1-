@@ -1,7 +1,11 @@
 <div class="page-wrap">
   <span class="logo big"></span>
   <span class="logo small"></span>
-
+  {{#if alert}}
+    <script>
+      alert("{{alert}}")
+    </script>
+  {{/if}}
   <div class="login-wrap">
     <div class="log-in">
       <img class="text-logo" src="/img/tastetaft_text.svg" />

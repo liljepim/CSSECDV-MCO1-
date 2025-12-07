@@ -5,8 +5,11 @@
         <div class="forget">
             <div class="forget-form-wrap">
                 <img class="text-logo" src="/img/tastetaft_text.svg"/>
-                <form action="/forget-pass" method="POST" class="forget-form">
+                <form action="/forget" method="POST" class="forget-form">
                     <h3 class="bold">Forget Password</h3>
+                    {{#if error}}
+                        <h5 style="color:red; font-weight:bold;">{{error}}</h5>
+                    {{/if}}
                     <input type="text" class="input-box" id="username" placeholder="Username" name="username" required>
 
                     <button type="submit" class="form-button">Continue</button>

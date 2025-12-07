@@ -64,6 +64,13 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/login-
     }
 });
 
+router.get('/forget', async (req, res) => {
+    if(req.user){
+        res.redirect('/')
+    }
+    res.render('forget-pass', {layout: 'loginregister', css: ['styles_j']})
+})
+
 router.get('/admin', async (req, res) => {
     // Check if user is authenticated and is admin
     if (!req.isAuthenticated() || !req.user.isAdmin) {
@@ -85,6 +92,39 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
         return res.redirect('/login');
     }
 });
+
+// router.get('/register', async (req, res) => {
+//     if(req.user){
+//         res.redirect('/')
+//     }
+//     
+//     try {
+//         // Fetch all reviews from the database
+//         const reviews = await Review.find({})
+//             .sort({ reviewDate: -1 }) // Sort by most recent first
+//             .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate') // Select only needed fields
+//         
+//         // render moderator page with reviews
+//         res.render('moderator', { 
+//             css: ['styles2'], 
+//             user: req.user,
+//             isModerator: true,
+//             reviews: reviews || [],
+//             success_msg: req.flash('success_msg'),
+//             error_msg: req.flash('error_msg')
+//         });
+//     } catch (error) {
+//         console.error('Error fetching reviews:', error);
+//         req.flash('error_msg', 'Error loading reviews');
+//         res.render('moderator', { 
+//             css: ['styles2'], 
+//             user: req.user,
+//             isModerator: true,
+//             reviews: [],
+//             error_msg: req.flash('error_msg')
+//         });
+//     }
+// });
 
 
 

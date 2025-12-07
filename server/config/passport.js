@@ -91,6 +91,7 @@ const checkRegularUser = (req, username, password, done) => {
                 user.isLocked = false;
                 user.loginAttempts = 0;
                 user.lockUntil = null;
+                
             }
 
             bcrypt.compare(password, user.userPassword, (err, result) => {
@@ -98,6 +99,7 @@ const checkRegularUser = (req, username, password, done) => {
                       user.loginAttempts = 0;
                       user.isLocked = false;
                       user.lockUntil = null;
+                      user.loginHistory.push({ date: new Date(), status: 'Successful' });
                       return user.save().then(() => done(null, user));
                 } else {
                     user.loginAttempts += 1;
@@ -105,6 +107,8 @@ const checkRegularUser = (req, username, password, done) => {
                             user.isLocked = true;
                             user.lockUntil = Date.now() + lockTime;
                         }
+
+                        user.loginHistory.push({ date: new Date(), status: 'Failed' });
 
                     return user.save().then(() => done(null, false, { message: "Invalid password" }));
                 }

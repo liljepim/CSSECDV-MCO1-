@@ -61,8 +61,15 @@ router.get('', async (req, res) => {
 
 router.get('/restos', ensureAuthenticated, async (req, res) => {
     const restos = await Resto.find({}).sort({restoID: 1});
+    let lastLogin = null;
+    if (req.user && req.user.loginHistory && req.user.loginHistory.length > 1) {
+        lastLogin = req.user.loginHistory[req.user.loginHistory.length - 2];
+    } else if (req.user && req.user.loginHistory && req.user.loginHistory.length === 1) {
+        lastLogin = null;
+    }
 
-    res.render('restos', {css: ['styles2'], restos, user: req.user})
+
+    res.render('restos', {css: ['styles2'], restos, user: req.user, lastLogin})
 })
 
 router.get('/restoreviews/:idResto', async (req, res) => {

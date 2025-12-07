@@ -109,30 +109,62 @@ router.get('/change', async (req, res) => {
     if(!req.session.resetUser) {
          return res.redirect('/forget')
     }
+    const errorText = req.query.errorText || '';
     const user = await User.findOne({ userName: req.session.resetUser})
-    res.render('reset-password', { layout: 'loginregister', css: ['styles_j']})
+    res.render('reset-password', { layout: 'loginregister', css: ['styles_j'],  errorText})
 })
 
 router.post('/change', async (req, res) => {
-    if(!req.session.resetUser) {
-         return res.redirect('/forget')
-    }
+    if (!req.session.resetUser) return res.redirect('/forget');
 
     const { password, password2 } = req.body;
-    console.log(password)
+    const errors = [];
+    
+    
+
     try {
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password, salt)
+        const user = await User.findOne({ userName: req.session.resetUser });
+        if (!user) return res.redirect('/change?errorText=User+not+found');
 
-        const updatedUser = await User.findOneAndUpdate( { userName: req.session.resetUser}, { password: hashedPassword }, { new: true })
+        
+        if (password !== password2) errors.push("Passwords do not match");
 
-        return res.redirect('/login?alert=Password+Reset+Succesful')
+        
+        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+        if (Date.now() - new Date(user.passwordLastChanged).getTime() <= ONE_DAY_MS){
+            console.log("Now:", new Date());
+            console.log("passwordLastChanged:", user.passwordLastChanged);
+            errors.push("Password must be at least 1 day old before changing");
+        }   
+        
+        const isCurrent = await bcrypt.compare(password, user.userPassword);
+        if (isCurrent) errors.push("Cannot reuse any previous passwords");
 
-    } catch(err) {
-        console.log(err)
-        res.status(500).send("Error Updating Password")
+        for (const entry of user.passwordHistory) {
+            if (await bcrypt.compare(password, entry.passwordHash)) {
+                errors.push("Cannot reuse any previous passwords");
+                break;
+            }
+        }
+
+        if (errors.length > 0) {
+            return res.redirect('/change?errorText=' + encodeURIComponent(errors.join('. ')));
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.passwordHistory.push({ passwordHash: user.userPassword });
+        user.userPassword = hashedPassword;
+        user.passwordLastChanged = new Date();
+        await user.save();
+
+        return res.redirect('/login?alert=Password+Reset+Successful');
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send("Error Updating Password");
     }
-})
+});
+
 
 router.get('/admin', async (req, res) => {
     // Check if user is authenticated and is admin

@@ -1,56 +1,117 @@
-<div class="page-wrap">
-  <div class="logo big"></div>
-  <div class="logo small"></div>
+<div class="logo big"></div>
+<div class="logo small"></div>
+<div class="page-wrap" id="register-page-wrap">
 
   <div class="register-wrap">
     <div class="register">
       <div class="form-wrap">
         <img class="text-logo" src="/img/tastetaft_text.svg"/>
         <h1 class="bold">Register</h1>
-        {{#each errors}}<h5 style="color:red">{{this}}</h5>{{/each}}
-        <form action="/register" method="POST" enctype="multipart/form-data">
-          <input
-            type="text"
-            class="input-box"
-            id="username"
-            placeholder="Username"
-            name="username"
-            required
-          />
-          <input
-            type="password"
-            class="input-box"
-            id="password"
-            placeholder="Password"
-            name="password"
-            required
-          />
-          {{!-- <input
-            type="text"
-            class="input-box"
-            id="id-number"
-            placeholder="ID number"
-            name="idnumber"
-            
-          /> --}}
-          <input
-            type="password"
-            class="input-box"
-            id="password"
-            placeholder="Confirm Password"
-            name="password2"
-            required
-          />
-          <input
-            type="text"
-            class="description-box"
-            id="description"
-            placeholder="Description"
-            name="description"
-          />
-          <button type="submit" class="form-button">Register</button>
-        
+        <form action="/register" method="POST" enctype="multipart/form-data" class="register-form">
+          <div class="text-input">
+            <input
+              type="text"
+              class="input-box"
+              id="username"
+              placeholder="Username"
+              name="username"
+              required
+            />
+
+            <div id="pw-requirements" style="display:none;">
+              <p>Password must contain:</p>
+              <ul>
+                <li id="req-length" class="invalid">At least 8 characters</li>
+                <li id="req-upper" class="invalid">An uppercase letter (A–Z)</li>
+                <li id="req-lower" class="invalid">A lowercase letter (a–z)</li>
+                <li id="req-number" class="invalid">A number (0–9)</li>
+                <li id="req-special" class="invalid">A special character (!@#$...)</li>
+              </ul>
+            </div>
+
+            <input
+              type="password"
+              class="input-box"
+              id="password"
+              placeholder="Password"
+              name="password"
+              required
+            />
+            {{!-- <input
+              type="text"
+              class="input-box"
+              id="id-number"
+              placeholder="ID number"
+              name="idnumber"
+              
+            /> --}}
+
+            <div id="pw2-requirements" style="display:none; color:red;">
+              <h5>Password does not match</h5>
+            </div>
+            <input
+              type="password"
+              class="input-box"
+              id="password2"
+              placeholder="Confirm Password"
+              name="password2"
+              required
+            />
+
+            <select class="secq" name="security1" required>
+              <option value="" disabled selected>Security Question #1</option>
+              <option value="What is your mother's maiden name?" >What is your mother's maiden name?</option>
+              <option value="What elementary school did you attend?" >What elementary school did you attend?</option>
+              <option value="What is the name of a childhood friend only you would remember?" >What is the name of a childhood friend only you would remember?</option>
+              <option value="What was the first movie you saw in the cinema?" >What was the first movie you saw in the cinema?</option>
+            </select>
+
+            <input
+              type="text"
+              class="input-box"
+              id="security-question"
+              placeholder="Answer #1"
+              name="answer1"
+              required
+            />
+
+            <select class="secq" name="security2" required>
+              <option value="" disabled selected>Security Question #2</option>
+              <option value="mother" >What is your mother's maiden name?</option>
+              <option value="school" >What elementary school did you attend?</option>
+              <option value="childhood" >What is the name of a childhood friend only you would remember?</option>
+              <option value="movie" >What was the first movie you saw in the cinema?</option>
+            </select>
+
+            <input
+              type="text"
+              class="input-box"
+              id="security-question"
+              placeholder="Answer #2"
+              name="answer2"
+              required
+            />
+
+            <select class="secq" name="security3" required>
+              <option value="" disabled selected>Security Question #3</option>
+              <option value="mother" >What is your mother's maiden name?</option>
+              <option value="school" >What elementary school did you attend?</option>
+              <option value="childhood" >What is the name of a childhood friend only you would remember?</option>
+              <option value="movie" >What was the first movie you saw in the cinema?</option>
+            </select>
+
+            <input
+              type="text"
+              class="input-box"
+              id="security-question"
+              placeholder="Answer #3"
+              name="answer3"
+              required
+            />
+
+            <button type="submit" class="form-button" id="register-btn" disabled>Register</button>
           </div>
+
           <div class="avatar-wrap">
             <div class="avatar-text">Upload an avatar:</div>
             <div class="icon-container">
@@ -69,3 +130,5 @@
   </div>
 
 </div>
+
+<script src="/js/register-validation.js"></script>

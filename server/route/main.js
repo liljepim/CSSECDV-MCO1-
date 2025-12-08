@@ -61,8 +61,15 @@ router.get('', async (req, res) => {
 
 router.get('/restos', ensureAuthenticated, async (req, res) => {
     const restos = await Resto.find({}).sort({restoID: 1});
+    let lastLogin = null;
+    if (req.user && req.user.loginHistory && req.user.loginHistory.length > 1) {
+        lastLogin = req.user.loginHistory[req.user.loginHistory.length - 2];
+    } else if (req.user && req.user.loginHistory && req.user.loginHistory.length === 1) {
+        lastLogin = null;
+    }
 
-    res.render('restos', {css: ['styles2'], restos, user: req.user})
+
+    res.render('restos', {css: ['styles2'], restos, user: req.user, lastLogin})
 })
 
 router.get('/restoreviews/:idResto', async (req, res) => {
@@ -213,50 +220,94 @@ router.get('/editlogout/:currentUserID', async (req, res) => {
 })
 
 router.post('/editprofile/:currentUserID', upload, async (req, res) => {
-	try
-	{
-		const currentUserID = req.params.currentUserID
-		const { userName, userPassword, userDesc, fileInput } = req.body
-		let filename = ""
-		    
-		if(fileInput)
-			filename = "/img/" + fileInput
+	try {
+		const currentUserID = req.params.currentUserID;
+		const { userName, userPassword, userDesc, currentPassword, fileInput } = req.body;
 		
-		const generatedPassword = await generatePassword(userPassword)
-		const user = await User.findOneAndUpdate(
-			{ userID: currentUserID },
-			{
-				userName: userName,
-				userPassword: generatedPassword,
-				userDesc: userDesc,
-				userImage: filename
-			},
+		// Check if current password is provided
+		if (!currentPassword) {
+			req.flash('error_msg', 'Current password is required to make changes');
+			return res.redirect('/editlogout/' + currentUserID);
+		}
+		
+		// Verify current password
+		const user = await User.findOne({ userID: parseInt(currentUserID) });
+		if (!user) {
+			req.flash('error_msg', 'User not found');
+			return res.redirect('/editlogout/' + currentUserID);
+		}
+		
+		// Compare current password
+		const isValidPassword = await bcrypt.compare(currentPassword, user.userPassword);
+		if (!isValidPassword) {
+			req.flash('error_msg', 'Current password is incorrect');
+			return res.redirect('/editlogout/' + currentUserID);
+		}
+		
+		// Prepare update data
+		const updateData = {
+			userName: userName,
+			userDesc: userDesc
+		};
+		
+		// Handle file upload
+		let filename = user.userImage; // Keep existing image by default
+		
+		if (req.file) {
+			filename = "/img/" + req.file.filename;
+			updateData.userImage = filename;
+		}
+		
+		// Only update password if a new one was provided
+		if (userPassword && userPassword.trim() !== '') {
+			const generatedPassword = await generatePassword(userPassword);
+			updateData.userPassword = generatedPassword;
+		}
+		
+		// Check if anything actually changed
+		const hasChanges = userName !== user.userName || 
+						  userDesc !== user.userDesc || 
+						  (userPassword && userPassword.trim() !== '') ||
+						  (req.file);
+		
+		if (!hasChanges) {
+			req.flash('info_msg', 'No changes were made');
+			return res.redirect('/editlogout/' + currentUserID);
+		}
+		
+		const updatedUser = await User.findOneAndUpdate(
+			{ userID: parseInt(currentUserID) },
+			updateData,
 			{ new: true }
-		)
-		console.log(filename)
-
-		res.redirect('/editlogout/' + currentUserID)
+		);
+		
+		console.log(`User ${currentUserID} updated successfully`);
+		
+		req.flash('success_msg', 'Profile updated successfully');
+		res.redirect('/editlogout/' + currentUserID);
+	} catch(error) {
+		console.error(error);
+		req.flash('error_msg', 'Error editing profile');
+		res.status(500).redirect('/editlogout/' + currentUserID);
 	}
-	catch(error)
-	{
-		console.error(error)
-		res.status(500).send('Error editing profile')
-	}
-})
+});
 
-async function generatePassword(userPassword)
-{
+async function generatePassword(userPassword) {
+	if (!userPassword || userPassword.trim() === '') {
+		return '';
+	}
+	
 	const hashedPassword = await new Promise((resolve, reject) => {
 		bcrypt.genSalt(10, (err, salt) => {
-			genSalt = salt
+			if (err) reject(err);
 			bcrypt.hash(userPassword, salt, (err, hash) => {
-				if (err) reject (err)
-				resolve(hash)
-			})
-		})
-	})
+				if (err) reject(err);
+				resolve(hash);
+			});
+		});
+	});
 	
-	return hashedPassword
+	return hashedPassword;
 }
 
 router.get('/editreview/:idReview', async (req, res) => {
@@ -446,18 +497,39 @@ function formatDate(dateString) {
 router.post('/submit-review', async (req, res) => {
   try {
     const { reviewTitle, reviewContent, reviewRating } = req.body;
-    const reviewID = await generateReviewID(); // Generate unique review ID
+    
+    // Server-side validation
+    if (!reviewRating || !['W', 'M', 'L'].includes(reviewRating)) {
+      console.log('Invalid rating:', reviewRating);
+      return res.status(400).send('Invalid rating selected');
+    }
+    
+    if (reviewTitle.length > 50) {
+      return res.status(400).send('Title must be 50 characters or less');
+    }
+    
+    if (reviewContent.length > 150) {
+      return res.status(400).send('Review content must be 150 characters or less');
+    }
+    
+    // Check for special characters in title
+    const specialCharRegex = /[^a-zA-Z0-9\s]/;
+    if (specialCharRegex.test(reviewTitle)) {
+      return res.status(400).send('Title can only contain letters and numbers');
+    }
+    
+    const reviewID = await generateReviewID();
     const originalDate = new Date().toISOString();
     const review = new Review({
       reviewID,
-      userID: req.user.userID, // You need to provide userID in the form or fetch it from somewhere
-      restoID: req.body.restoID, // You need to provide restoID in the form or fetch it from somewhere
+      userID: req.user.userID,
+      restoID: req.body.restoID,
       reviewTitle,
       reviewContent,
-      
       reviewDate: formatDate(originalDate),
       reviewRating,
     });
+    
     await review.save();
     res.redirect('/restoreviews/' + req.body.restoID);
   } catch (error) {
@@ -472,16 +544,32 @@ router.post('/edit-review/:reviewID', async (req, res) => {
     const reviewID = req.params.reviewID;
     const { reviewTitle, reviewContent, reviewRating, isEdited} = req.body;
     
-    // Assuming you have a Review model defined
+    if (!reviewRating || !['W', 'M', 'L'].includes(reviewRating)) {
+      console.log('Invalid rating:', reviewRating);
+      return res.status(400).send('Invalid rating selected');
+    }
+    
+    if (reviewTitle.length > 50) {
+      return res.status(400).send('Title must be 50 characters or less');
+    }
+    
+    if (reviewContent.length > 150) {
+      return res.status(400).send('Review content must be 150 characters or less');
+    }
+    const specialCharRegex = /[^a-zA-Z0-9\s]/;
+    if (specialCharRegex.test(reviewTitle)) {
+      return res.status(400).send('Title can only contain letters and numbers');
+    }
+    
     const review = await Review.findOneAndUpdate(
-      { reviewID: reviewID }, // Query to find the review by its ID
+      { reviewID: reviewID },
       {
         reviewTitle: reviewTitle,
         reviewContent: reviewContent,
         reviewRating: reviewRating,
-        isEdited: isEdited // Set isEdited to true
+        isEdited: isEdited
       },
-      { new: true } // To return the updated review
+      { new: true }
     );
 
     if (!review) {
@@ -489,7 +577,6 @@ router.post('/edit-review/:reviewID', async (req, res) => {
     }
     
     res.redirect('/restoreviews/' + review.restoID);
-    console.log(review);
   } catch (error) {
     console.error(error);
     res.status(500).send('Error editing review');

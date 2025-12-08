@@ -21,6 +21,8 @@ const options = {
     cert: fs.readFileSync('./certs/server.cert')
 }
 */
+// For development only using reload
+const reload = require('reload');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -95,6 +97,9 @@ app.use((req, res, next) => {
 
 app.use('/', require('./server/route/main.js'));
 app.use('/', require('./server/route/auth.js'))
+app.use((req, res) => {
+    res.render('notfound', { css: ["notfound"]})
+})
 
 
 app.listen(PORT, () => {
@@ -104,3 +109,8 @@ app.listen(PORT, () => {
 // https.createServer(options, app).listen(PORT, () => {
 //     console.log(`Server is listening on port ${PORT}...`)
 // })
+reload(app).then(() => {
+    console.log('🔄 Hot Reload Enabled');
+}).catch(err => {
+    console.error('Reload error:', err);
+});

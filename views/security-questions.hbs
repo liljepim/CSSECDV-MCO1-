@@ -1,0 +1,24 @@
+<div class="page-wrap">
+    <div class="logo big"></div>
+    <div class="logo small"></div>
+    <div class="security-wrap">
+        <div class="security-form-wrap">
+            <form action="/security-questions" method="POST" class="security-form">
+                <div>
+                <img src="/img/tastetaft_text.svg" alt="TasteTaft" class="text-logo">
+                <h1>Security Question</h1>
+                {{#if error}}
+                    <h3 style="color:red; font-weight:bold;">{{error}}</h3>
+                {{/if}}
+                </div>
+                <div>
+                {{#if question}}
+                    <h2>{{question}}</h2>
+                {{/if}}
+                <input type="text" class="input-box" id="answer" placeholder="Answer" name="answer">
+                </div>
+                <button type="submit" class="form-button" id="security">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -2,8 +2,89 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../models/User');
 const Admin = require('../models/Admin');
-const Moderator = require('../models/Moderator'); // Add this line
+const Moderator = require('../models/Moderator');
 const bcrypt = require('bcrypt');
+
+const maxAttempts = 5;
+const lockTime = 30 * 60 * 1000; // 30 minutes
+
+// helper function to check regular users
+const checkRegularUser = (req, username, password, done) => {
+    User.findOne({ userName: username })
+        .then((user) => {
+            if (!user) {
+                return done(null, false);
+            }
+
+            if (user.isLocked && user.lockUntil > Date.now()) {
+                const msLeft = user.lockUntil - Date.now();
+                const minutes = Math.floor(msLeft / 60000);
+                const seconds = Math.floor((msLeft % 60000) / 1000);
+                console.log(`[Login] Account Lockout ${username}. Attempts: ${user.loginAttempts}`);
+                req.session.lockInfo = { username, minutes, seconds };
+                return done(null, false, { locked: true, minutes, seconds });
+            }
+
+            if (user.isLocked && user.lockUntil <= Date.now()) {
+                user.isLocked = false;
+                user.loginAttempts = 0;
+                user.lockUntil = null;
+            }
+
+            bcrypt.compare(password, user.userPassword, (err, result) => {
+                if (result) {
+                    user.loginAttempts = 0;
+                    user.isLocked = false;
+                    user.lockUntil = null;
+                    user.loginHistory.push({ date: new Date(), status: 'Successful' });
+                    return user.save().then(() => done(null, user));
+                } else {
+                    user.loginAttempts += 1;
+                    if (user.loginAttempts >= maxAttempts) {
+                        user.isLocked = true;
+                        user.lockUntil = Date.now() + lockTime;
+                    }
+
+                    user.loginHistory.push({ date: new Date(), status: 'Failed' });
+                    return user.save().then(() => done(null, false, { message: "Invalid password" }));
+                }
+            });
+        })
+        .catch((err) => {
+            done(err);
+        });
+};
+
+// helper function to check moderators
+const checkModerator = (req, username, password, done) => {
+    Moderator.findOne({ moderatorName: username })
+        .then((moderator) => {
+            if (moderator) {
+                // moderator login attempt
+                if (password === moderator.moderatorPassword) {
+                    const modUser = {
+                        ...moderator._doc,
+                        isAdmin: false,
+                        isModerator: true,
+                        userID: moderator._id,
+                        userName: moderator.moderatorName,
+                        userType: 'moderator'
+                    };
+                    return done(null, modUser);
+                } else {
+                    // password doesn't match for moderator, check regular user
+                    return checkRegularUser(req, username, password, done);
+                }
+            } else {
+                // not a moderator, check regular user
+                return checkRegularUser(req, username, password, done);
+            }
+        })
+        .catch((err) => {
+            console.error("Moderator check error:", err);
+            return checkRegularUser(req, username, password, done);
+        });
+};
 
 const verifyCallback = (req, username, password, done) => {
     // First check if it's an admin
@@ -23,74 +104,16 @@ const verifyCallback = (req, username, password, done) => {
                     return done(null, adminUser);
                 } else {
                     // password doesn't match for admin, check moderator
-                    return checkModerator(username, password, done);
+                    return checkModerator(req, username, password, done);
                 }
             } else {
-                // not an admin, check moderator
-                return checkModerator(username, password, done);
+                // not an admin check moderator first, then regular user
+                return checkModerator(req, username, password, done);
             }
         })
         .catch((err) => {
             console.error("Admin check error:", err);
-            return checkModerator(username, password, done);
-        });
-};
-
-// helper function to check moderators
-const checkModerator = (username, password, done) => {
-    Moderator.findOne({ moderatorName: username })
-        .then((moderator) => {
-            if (moderator) {
-                // moderator login attempt
-                if (password === moderator.moderatorPassword) {
-                    const modUser = {
-                        ...moderator._doc,
-                        isAdmin: false,
-                        isModerator: true,
-                        userID: moderator._id,
-                        userName: moderator.moderatorName,
-                        userType: 'moderator'
-                    };
-                    return done(null, modUser);
-                } else {
-                    // password doesn't match for moderator, check regular user
-                    return checkRegularUser(username, password, done);
-                }
-            } else {
-                // not a moderator, check regular user
-                return checkRegularUser(username, password, done);
-            }
-        })
-        .catch((err) => {
-            console.error("Moderator check error:", err);
-            return checkRegularUser(username, password, done);
-        });
-};
-
-// helper function to check regular users (unchanged)
-const checkRegularUser = (username, password, done) => {
-    User.findOne({ userName: username })
-        .then((user) => {
-            if (!user) {
-                return done(null, false);
-            }
-
-            bcrypt.compare(password, user.userPassword, (err, result) => {
-                if (result) {
-                    const regularUser = {
-                        ...user._doc,
-                        isAdmin: false,
-                        isModerator: false,
-                        userType: 'user'
-                    };
-                    return done(null, regularUser);
-                } else {
-                    return done(null, false);
-                }
-            });
-        })
-        .catch((err) => {
-            done(err);
+            return checkModerator(req, username, password, done);
         });
 };
 

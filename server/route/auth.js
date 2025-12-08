@@ -15,6 +15,7 @@ const Admin = require('../models/Admin');
 const Moderator = require('../models/Moderator');
 const { ensureAuthenticated } = require('./authcheck.js');
 
+
 // router.use(async (req,res,next) => {
 //   console.log(req.session);
 //   console.log(req.sessionID)
@@ -42,7 +43,7 @@ router.get('/login', async (req, res) => {
     if(req.user){
         res.redirect('/')
     }
-    res.render('login', {layout: 'loginregister', css: ['styles_j']})
+    res.render('login', {layout: 'loginregister', css: ['styles_j'], alert: req.query.alert || null})
 })
 
 
@@ -63,6 +64,108 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/login-
         res.redirect('/');
     }
 });
+
+router.get('/forget', async (req, res) => {
+    if(req.user){
+        res.redirect('/')
+    }
+    res.render('forget-pass', {layout: 'loginregister', css: ['styles_j'], error: req.query.error || null})
+})
+
+router.post('/forget', async (req, res) => {
+    const { username } = req.body
+    console.log(username)
+    const user = await User.findOne({ userName: username})
+    if (!user) {
+        return res.redirect('/forget?error=User+not+found')
+    }
+    req.session.resetUser = user.userName
+    res.redirect('/security-questions')
+});
+
+router.get('/security-questions', async (req, res) => {
+    if (!req.session.resetUser) {
+        res.redirect('/forget')
+    }
+    const user = await User.findOne({ userName: req.session.resetUser})
+    const securityQuestions = [user.question1, user.question2, user.question3]
+    const securityAnswers = [user.answer1, user.answer2, user.answer3]
+    const n = Math.floor(Math.random() * 3);
+
+    req.session.answer=securityAnswers[n]
+
+    res.render('security-questions', { layout: 'loginregister', css: ['styles_j'], question: securityQuestions[n], error:req.query.error || null})
+})
+
+router.post('/security-questions', async (req, res) => {
+    const { answer } = req.body;
+
+    if(answer === req.session.answer) {
+        return res.redirect('change')
+    }
+    res.redirect('/security-questions?error=Incorrect+answer.')
+})
+
+router.get('/change', async (req, res) => {
+    if(!req.session.resetUser) {
+         return res.redirect('/forget')
+    }
+    const errorText = req.query.errorText || '';
+    const user = await User.findOne({ userName: req.session.resetUser})
+    res.render('reset-password', { layout: 'loginregister', css: ['styles_j'],  errorText})
+})
+
+router.post('/change', async (req, res) => {
+    if (!req.session.resetUser) return res.redirect('/forget');
+
+    const { password, password2 } = req.body;
+    const errors = [];
+    
+    
+
+    try {
+        const user = await User.findOne({ userName: req.session.resetUser });
+        if (!user) return res.redirect('/change?errorText=User+not+found');
+
+        
+        if (password !== password2) errors.push("Passwords do not match");
+
+        
+        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+        if (Date.now() - new Date(user.passwordLastChanged).getTime() <= ONE_DAY_MS){
+            console.log("Now:", new Date());
+            console.log("passwordLastChanged:", user.passwordLastChanged);
+            errors.push("Password must be at least 1 day old before changing");
+        }   
+        
+        const isCurrent = await bcrypt.compare(password, user.userPassword);
+        if (isCurrent) errors.push("Cannot reuse any previous passwords");
+
+        for (const entry of user.passwordHistory) {
+            if (await bcrypt.compare(password, entry.passwordHash)) {
+                errors.push("Cannot reuse any previous passwords");
+                break;
+            }
+        }
+
+        if (errors.length > 0) {
+            return res.redirect('/change?errorText=' + encodeURIComponent(errors.join('. ')));
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.passwordHistory.push({ passwordHash: user.userPassword });
+        user.userPassword = hashedPassword;
+        user.passwordLastChanged = new Date();
+        await user.save();
+
+        return res.redirect('/login?alert=Password+Reset+Successful');
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send("Error Updating Password");
+    }
+});
+
 
 router.get('/admin', async (req, res) => {
     // Check if user is authenticated and is admin
@@ -86,23 +189,33 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
     }
     
     try {
-        // Fetch all reviews from the database
+        // Fetch all reviews from the database for moderation
         const reviews = await Review.find({})
             .sort({ reviewDate: -1 }) // Sort by most recent first
-            .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate') // Select only needed fields
+            .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate helpfulCount notHelpfulCount') // Select needed fields
         
-        // render moderator page with reviews
+        // Get user information for each review
+        const reviewsWithUsers = await Promise.all(reviews.map(async (review) => {
+            const user = await User.findOne({ userID: review.userID });
+            return {
+                ...review.toObject(),
+                userName: user ? user.userName : 'Unknown User',
+                userImage: user ? user.userImage : ''
+            };
+        }));
+
+        // Render moderator page with reviews
         res.render('moderator', { 
             css: ['styles2'], 
             user: req.user,
             isModerator: true,
-            reviews: reviews || [],
+            reviews: reviewsWithUsers || [],
             success_msg: req.flash('success_msg'),
             error_msg: req.flash('error_msg')
         });
     } catch (error) {
-        console.error('Error fetching reviews:', error);
-        req.flash('error_msg', 'Error loading reviews');
+        console.error('Error loading moderator page:', error);
+        req.flash('error_msg', 'Error loading moderator page');
         res.render('moderator', { 
             css: ['styles2'], 
             user: req.user,
@@ -113,6 +226,47 @@ router.get('/moderator', ensureAuthenticated, async (req, res) => {
     }
 });
 
+// router.get('/register', async (req, res) => {
+//     if(req.user){
+//         res.redirect('/')
+//     }
+//     
+//     try {
+//         // Fetch all reviews from the database
+//         const reviews = await Review.find({})
+//             .sort({ reviewDate: -1 }) // Sort by most recent first
+//             .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate') // Select only needed fields
+//         
+//         // render moderator page with reviews
+//         res.render('moderator', { 
+//             css: ['styles2'], 
+//             user: req.user,
+//             isModerator: true,
+//             reviews: reviews || [],
+//             success_msg: req.flash('success_msg'),
+//             error_msg: req.flash('error_msg')
+//         });
+//     } catch (error) {
+//         console.error('Error fetching reviews:', error);
+//         req.flash('error_msg', 'Error loading reviews');
+//         res.render('moderator', { 
+//             css: ['styles2'], 
+//             user: req.user,
+//             isModerator: true,
+//             reviews: [],
+//             error_msg: req.flash('error_msg')
+//         });
+//     }
+// });
+
+
+
+router.get('/register', async (req, res) => {
+    if(req.user){
+        return res.redirect('/');
+    }
+    res.render('register', { layout: 'loginregister', css: ['styles_j'], errors: [],success_msg: req.flash('success_msg'),error_msg: req.flash('error_msg')});
+});
 
 router.post('/moderator/delete-review/:reviewID', ensureAuthenticated, async (req, res) => {
     // check if user is authenticated and is moderator
@@ -145,21 +299,20 @@ router.post('/moderator/delete-review/:reviewID', ensureAuthenticated, async (re
 
 
 router.get('/login-failed', async (req, res) => {
-    res.render('login', {layout: 'loginregister', css: ['styles_j'], isFailed: true})
-})
+  //essentially if lockInfo exists, username being tried is locked
+    const lockInfo = req.session.lockInfo;
+    const isLocked = !!lockInfo;
 
-router.get('/register', async (req, res) => {
-    
-    if(req.user){
-        res.redirect('/')
-    }
-    res.render('register', {layout: 'loginregister', css: ['styles_j']})
-})
+    if (isLocked) delete req.session.lockInfo;
+
+    res.render('login', {layout: 'loginregister',css: ['styles_j'],isFailed: !isLocked, lockMinutes: lockInfo?.minutes || 0, lockSeconds: lockInfo?.seconds || 0});
+});
+
 
 router.post('/register', upload, async (req, res) => {
     const users = await User.find({}).sort({_id: -1})
-    lastID = users[0].userID;
-    const { username, password, password2, description} = req.body
+    lastID = users[0]?.userID || 0;
+    const { username, password, password2, description, security1, security2, security3, answer1, answer2, answer3 } = req.body
     let errors = []
     let success = false
     let filename = ""
@@ -167,13 +320,16 @@ router.post('/register', upload, async (req, res) => {
     if(req.file){
       filename = "/img/" + req.file.filename
     }
+
     if(await User.findOne({userName: username})){
       console.log("Existing")
       errors.push("Username Already Taken")
     }
+
     if(password !== password2){
       errors.push("Password does not match")
     }
+
     console.log(errors.length)
     if(errors.length > 0){
       if(req.file){
@@ -189,13 +345,19 @@ router.post('/register', upload, async (req, res) => {
       let hashedPassword = ""
       bcrypt.genSalt(10, (err,salt) => {
         genSalt = salt
-        bcrypt.hash(password, salt, (err, hash) => {
+      bcrypt.hash(password, salt, (err, hash) => {
           const newUser = new User({
             userID: lastID + 1,
             userName: username,
             userPassword: hash,
             userDesc: description,
-            userImage: filename
+            userImage: filename,
+            question1: security1, 
+            question2: security2, 
+            question3: security3, 
+            answer1: answer1, 
+            answer2: answer2, 
+            answer3: answer3
           })
           newUser.save()
         })

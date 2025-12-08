@@ -541,10 +541,8 @@
 <!-- Add/Edit Restaurant Modal -->
 <div id="restaurant-modal" class="modal-overlay">
     <div class="modal-content">
-        
-            <h2 id="modal-title">Add New Restaurant</h2>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-        
+        <h2 id="modal-title">Add New Restaurant</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
         <div class="modal-body">
             <form id="restaurant-form" enctype="multipart/form-data">
                 <input type="hidden" id="restoID" name="restoID">
@@ -552,13 +550,23 @@
                 <div class="form-group">
                     <label for="restoName">Restaurant Name *</label>
                     <input type="text" id="restoName" name="restoName" required
-                           placeholder="Enter restaurant name">
+                           placeholder="Enter restaurant name" maxlength="50"
+                           oninput="validateRestoName()">
+                    <span id="restoNameError" style="display: none; color: red; font-size: 12px; margin-top: 5px;"></span>
+                    <div id="nameCounter" style="font-size: 12px; margin-top: 5px;">
+                        Characters: <span id="nameCharCount">0</span>/50
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="restoDesc">Description *</label>
                     <textarea id="restoDesc" name="restoDesc" rows="4" required
-                              placeholder="Enter restaurant description"></textarea>
+                              placeholder="Enter restaurant description" maxlength="150"
+                              oninput="validateRestoDesc()"></textarea>
+                    <span id="restoDescError" style="display: none; color: red; font-size: 12px; margin-top: 5px;"></span>
+                    <div id="descCounter" style="font-size: 12px; margin-top: 5px;">
+                        Characters: <span id="descCharCount">0</span>/150
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -929,4 +937,206 @@ document.addEventListener('keydown', function(e) {
         closeDeleteModal();
     }
 });
+
+
+function validateRestoName() {
+    const nameInput = document.getElementById('restoName');
+    const nameError = document.getElementById('restoNameError');
+    const nameValue = nameInput.value;
+    
+    // Update counter
+    updateNameCounter();
+    
+    // Check length (50 characters max)
+    if (nameValue.length > 50) {
+        nameError.textContent = 'Restaurant name must be 50 characters or less';
+        nameError.style.display = 'block';
+        return false;
+    }
+    
+    // Allow all characters including special characters and numbers
+    // No character restrictions, only length
+    
+    // Clear error if valid
+    nameError.style.display = 'none';
+    return true;
+}
+
+function validateRestoDesc() {
+    const descInput = document.getElementById('restoDesc');
+    const descError = document.getElementById('restoDescError');
+    const descValue = descInput.value;
+    
+    // Update counter
+    updateDescCounter();
+    
+    // Check length (150 characters max)
+    if (descValue.length > 150) {
+        descError.textContent = 'Description must be 150 characters or less';
+        descError.style.display = 'block';
+        return false;
+    }
+    
+    // Allow all characters including special characters and numbers
+    // No character restrictions, only length
+    
+    // Clear error if valid
+    descError.style.display = 'none';
+    return true;
+}
+
+function updateNameCounter() {
+    const nameInput = document.getElementById('restoName');
+    const counter = document.getElementById('nameCharCount');
+    if (nameInput && counter) {
+        const length = nameInput.value.length;
+        counter.textContent = length;
+        
+        // Add warning color when near limit
+        if (length > 40) { // > 80% of 50
+            counter.style.color = 'orange';
+            if (length === 50) {
+                counter.style.color = 'red';
+            }
+        } else {
+            counter.style.color = '';
+        }
+    }
+}
+
+function updateDescCounter() {
+    const descInput = document.getElementById('restoDesc');
+    const counter = document.getElementById('descCharCount');
+    if (descInput && counter) {
+        const length = descInput.value.length;
+        counter.textContent = length;
+        
+        // Add warning color when near limit
+        if (length > 120) { // > 80% of 150
+            counter.style.color = 'orange';
+            if (length === 150) {
+                counter.style.color = 'red';
+            }
+        } else {
+            counter.style.color = '';
+        }
+    }
+}
+
+// Initialize validation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up event listeners for validation
+    const nameInput = document.getElementById('restoName');
+    const descInput = document.getElementById('restoDesc');
+    
+    if (nameInput) {
+        nameInput.addEventListener('input', validateRestoName);
+    }
+    
+    if (descInput) {
+        descInput.addEventListener('input', validateRestoDesc);
+    }
+});
+
+// Update form submission handler to include validation
+document.getElementById('restaurant-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validate inputs before submission
+    const isNameValid = validateRestoName();
+    const isDescValid = validateRestoDesc();
+    
+    if (!isNameValid || !isDescValid) {
+        // Focus on first invalid field
+        if (!isNameValid) {
+            document.getElementById('restoName').focus();
+        } else if (!isDescValid) {
+            document.getElementById('restoDesc').focus();
+        }
+        return;
+    }
+    
+    const formData = new FormData(this);
+    const restoID = document.getElementById('restoID').value;
+    const isEdit = restoID !== '';
+    
+    const url = isEdit ? `/admin/restaurants/${restoID}` : '/admin/restaurants';
+    const method = isEdit ? 'PUT' : 'POST';
+    
+    const submitBtn = this.querySelector('.submit-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    submitBtn.disabled = true;
+    
+    fetch(url, {
+        method: method,
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert(data.message);
+            closeModal();
+            loadRestaurants(currentPage);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving restaurant:', error);
+        alert('Error saving restaurant. Please try again.');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// Update the editRestaurant function to initialize counters
+function editRestaurant(restoID) {
+    fetch(`/admin/restaurants/${restoID}`)
+        .then(response => response.json())
+        .then(restaurant => {
+            document.getElementById('modal-title').textContent = 'Edit Restaurant';
+            document.getElementById('restoID').value = restaurant.restoID;
+            document.getElementById('restoName').value = restaurant.restoName;
+            document.getElementById('restoDesc').value = restaurant.restoDesc || '';
+            document.getElementById('aveRating').value = restaurant.aveRating || 'M';
+            
+            // Initialize counters for existing values
+            updateNameCounter();
+            updateDescCounter();
+            
+            // Show current image if exists
+            const imagePreview = document.getElementById('image-preview');
+            imagePreview.innerHTML = '';
+            if (restaurant.image) {
+                const img = document.createElement('img');
+                img.src = restaurant.image;
+                img.alt = restaurant.restoName;
+                imagePreview.appendChild(img);
+            }
+            
+            document.getElementById('restaurant-modal').style.display = 'flex';
+        })
+        .catch(error => {
+            console.error('Error loading restaurant:', error);
+            alert('Error loading restaurant details. Please try again.');
+        });
+}
+
+// Also update showAddRestaurantForm to initialize counters
+function showAddRestaurantForm() {
+    document.getElementById('modal-title').textContent = 'Add New Restaurant';
+    document.getElementById('restaurant-form').reset();
+    document.getElementById('restoID').value = '';
+    document.getElementById('image-preview').innerHTML = '';
+    
+    // Initialize counters to 0
+    document.getElementById('nameCharCount').textContent = '0';
+    document.getElementById('descCharCount').textContent = '0';
+    document.getElementById('nameCharCount').style.color = '';
+    document.getElementById('descCharCount').style.color = '';
+    
+    document.getElementById('restaurant-modal').style.display = 'flex';
+}
+
 </script>

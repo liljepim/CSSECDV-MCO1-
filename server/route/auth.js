@@ -34,6 +34,10 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
+    limits: {
+        fileSize: 25 * 1024 * 1024,
+        files: 1,
+    },
     storage: storage,
 }).single("image");
 
@@ -208,12 +212,10 @@ router.get("/admin", async (req, res) => {
         });
     } catch (error) {
         console.log("Error fetching logs: ", error);
-        res
-            .status(500)
-            .render("error", {
-                css: ["notfound"],
-                title: "Oh no something went wrong",
-            });
+        res.status(500).render("error", {
+            css: ["notfound"],
+            title: "Oh no something went wrong",
+        });
     }
 
     // render admin page
@@ -445,5 +447,17 @@ router.get("/logout", (req, res, next) => {
         res.redirect("/");
     });
 });
+
+function multerErrorHandler(multerMiddleware) {
+    return (req, res, next) => {
+        multerMiddleWare(req, res, (err) => {
+            if (err) {
+                err.status = 400;
+                return next(err);
+            }
+            next();
+        });
+    };
+}
 
 module.exports = router;

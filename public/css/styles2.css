@@ -296,7 +296,7 @@ nav{
 /* TasteTrek Page */
 
 #tastetrek-container {
-  margin-top: auto;
+  margin: auto 0;
   padding-top: 65px;
   width: 1300px;
   height: 100%;

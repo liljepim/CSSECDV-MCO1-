@@ -97,7 +97,13 @@ app.use((req, res, next) => {
 
 app.use('/', require('./server/route/main.js'));
 app.use('/', require('./server/route/auth.js'))
+app.use((req, res) => {
+    res.status(404).render('notfound', { css: ["notfound"], title: "Page not Found"})
+})
 
+app.use((err,req,res) => {
+    res.status(500).render('error', { css: ["notfound"], title: "Oh no something went wrong"})
+})
 
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}...`);

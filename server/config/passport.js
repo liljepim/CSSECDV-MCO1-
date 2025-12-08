@@ -3,6 +3,8 @@ const LocalStrategy = require('passport-local').Strategy;
 const User = require('../models/User');
 const Admin = require('../models/Admin');
 const Moderator = require('../models/Moderator'); // Add this line
+const { logEvent } = require("../utils/logger");
+
 const bcrypt = require('bcrypt');
 
 const maxAttempts = 5;
@@ -23,9 +25,25 @@ const verifyCallback = (req, username, password, done) => {
                         userName: admin.adminName,
                         userType: 'admin'
                     };
+                    logEvent({
+                        req,
+                        user_id: admin._id,
+                        action: "authentication_attempt",
+                        status: "success",
+                        event_description: "Admin login successful",
+                        module: "passport_local",
+                    }).catch(err => console.error("Logging error: ", err));
                     return done(null, adminUser);
                 } else {
                     // password doesn't match for admin, check moderator
+                    logEvent({
+                        req,
+                        attempted_identifier: username,
+                        action: "authentication_attempt",
+                        status: "failure",
+                        event_description: "Admin login failed (wrong password)",
+                        module: "passport_local",
+                    }).catch(err => console.error("Logging error: ", err));
                     return checkModerator(username, password, done);
                 }
             } else {
@@ -54,9 +72,25 @@ const checkModerator = (username, password, done) => {
                         userName: moderator.moderatorName,
                         userType: 'moderator'
                     };
+                    logEvent({
+                        req,
+                        user_id: moderator._id,
+                        action: "authentication_attempt",
+                        status: "success",
+                        event_description: "Moderator login successful",
+                        module: "passport_local",
+                    }).catch(err => console.error("Logging error: ", err));
                     return done(null, modUser);
                 } else {
                     // password doesn't match for moderator, check regular user
+                    logEvent({
+                        req,
+                        attempted_identifier: username,
+                        action: "authentication_attempt",
+                        status: "failure",
+                        event_description: "Moderator login failed (wrong password)",
+                        module: "passport_local",
+                    }).catch(err => console.error("Logging error: ", err));
                     return checkRegularUser(username, password, done);
                 }
             } else {
@@ -84,6 +118,14 @@ const checkRegularUser = (req, username, password, done) => {
                  const seconds = Math.floor((msLeft % 60000) / 1000);
                 console.log(`[Login] Account Lockout ${username}. Attempts: ${user.loginAttempts}`);
                 req.session.lockInfo = { username, minutes, seconds };
+                logEvent({
+                    req,
+                    user_id: user._id,
+                    action: "authentication_lockout",
+                    status: "locked_out",
+                    event_description: "User attempted login but is locked",
+                    module: "passport_local"
+                }).catch(err => console.error("Logging error: ", err));
                 return done(null, false, {locked: true, minutes, seconds});
             }
 
@@ -96,19 +138,43 @@ const checkRegularUser = (req, username, password, done) => {
 
             bcrypt.compare(password, user.userPassword, (err, result) => {
                 if (result) {
-                      user.loginAttempts = 0;
-                      user.isLocked = false;
-                      user.lockUntil = null;
-                      user.loginHistory.push({ date: new Date(), status: 'Successful' });
-                      return user.save().then(() => done(null, user));
+                    user.loginAttempts = 0;
+                    user.isLocked = false;
+                    user.lockUntil = null;
+                    user.loginHistory.push({ date: new Date(), status: 'Successful' });
+                    logEvent({
+                        req,
+                        user_id: user._id,
+                        action: "authentication_attempt",
+                        status: "success",
+                        event_description: "User login successful",
+                        module: "passport_local"
+                    }).catch(err => console.error("Logging error: ", err));
+                    return user.save().then(() => done(null, user));
                 } else {
                     user.loginAttempts += 1;
-                        if (user.loginAttempts >= maxAttempts) {
-                            user.isLocked = true;
-                            user.lockUntil = Date.now() + lockTime;
-                        }
+                    if (user.loginAttempts >= maxAttempts) {
+                        user.isLocked = true;
+                        user.lockUntil = Date.now() + lockTime;
+                        logEvent({
+                            req,
+                            user_id: user._id,
+                            action: "authentication_lockout",
+                            status: "locked_out",
+                            event_description: "User account locked out",
+                            module: "passport_local"
+                        }).catch(err => console.error("Logging error: ", err));
+                    }
 
-                        user.loginHistory.push({ date: new Date(), status: 'Failed' });
+                    user.loginHistory.push({ date: new Date(), status: 'Failed' });
+                    logEvent({
+                        req,
+                        user_id: user._id,
+                        action: "authentication_attempt",
+                        status: "failure",
+                        event_description: "Password mismatch",
+                        module: "passport_local"
+                    }).catch(err => console.error("Logging error: ", err));
 
                     return user.save().then(() => done(null, false, { message: "Invalid password" }));
                 }

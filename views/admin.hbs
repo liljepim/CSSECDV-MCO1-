@@ -65,13 +65,14 @@
     overflow-x: auto;
 }
 
-.restaurants-table {
+.restaurants-table, .logs-table {
     width: 100%;
     border-collapse: collapse;
     min-width: 800px;
 }
 
-.restaurants-table thead {
+.restaurants-table thead,
+.logs-table thead {
     background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
 }
 
@@ -627,7 +628,49 @@
 
 
 
-<div> <H1>ADD LOGS HERE</H1></div>
+<div> <H1>System Logs</H1></div>
+<div class="restaurant-management" id="restaurant-management">
+    <div class="table-container">
+        <table class="restaurants-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Source IP Address</th>
+                    <th>User Agent</th>
+                    <th>Action Attempted</th>
+                    <th>Description</th>
+                    <th>Module</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            {{#each logs}}
+                <tbody id="restaurants-body">
+                    <tr>
+                        <td>
+                            {{#if this.user_id}}
+                                {{this.user_id.userName}}
+                            {{else}}
+                                {{this.attempted_identifier}}
+                            {{/if}}
+                        </td>
+
+                        <td>{{this.source_ip}}</td>
+
+                        <td>{{this.user_agent}}</td>
+
+                        <td>{{this.action}}</td>
+
+                        <td>{{this.event_description}}</td>
+
+                        <td>{{this.module}}</td>
+                        
+                        <td>{{this.status}}</td>
+                    </tr>       
+                </tbody>
+            {{/each}}
+        </table>
+    </div>
+</div>
 <br>
 <br>
 <br>

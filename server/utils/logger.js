@@ -1,4 +1,4 @@
-const { log } = require("../models/Logs")
+const Log = require("../models/Logs")
 
 async function logEvent({
     user_id=null,

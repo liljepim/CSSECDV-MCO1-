@@ -56,25 +56,22 @@ app.set("view engine", "hbs");
 app.use(
     session({
         secret: "TasteTaft",
-        resave: false,
+        resave: true,
         saveUninitialized: false,
+
+        cookie: {
+            httpOnly: true,
+            secure: false,
+            maxAge: null,
+        },
+
         store: MongoStore.create({
             mongoUrl: process.env.MONGODB_URI,
             mongoOptions: {
                 useNewUrlParser: true,
             },
-            cookie: {
-                maxAge: (req, res) => {
-                    if (req.user && req.user.rememberme) {
-                        console.log("inside");
-                        return 24 * 60 * 60 * 1000;
-                    } else {
-                        console.log("inside");
-                        return null;
-                    }
-                },
-                expires: false,
-            },
+            autoremove: "native",
+            ttl: 24 * 60 * 60,
             collectionName: "sessions",
         }),
     }),

@@ -16,38 +16,48 @@ const verifyCallback = (req, username, password, done) => {
         .then((admin) => {
             if (admin) {
                 // admin login attempt
-                if (password === admin.adminPassword) {
-                    const adminUser = {
-                        ...admin._doc,
-                        isAdmin: true,
-                        isModerator: false,
-                        userID: admin._id,
-                        userName: admin.adminName,
-                        userType: "admin",
-                    };
-                    logEvent({
-                        req,
-                        user_id: admin._id,
-                        action: "authentication_attempt",
-                        status: "success",
-                        event_description: "Admin login successful",
-                        module: "passport_local",
-                    }).catch((err) => console.error("Logging error: ", err));
-                    return done(null, adminUser);
-                } else {
-                    // password doesn't match for admin, check moderator
-                    logEvent({
-                        req,
-                        attempted_identifier: username,
-                        action: "authentication_attempt",
-                        status: "failure",
-                        event_description: "Admin login failed (wrong password)",
-                        module: "passport_local",
-                    }).catch((err) => console.error("Logging error: ", err));
-                    return checkModerator(req, username, password, done);
-                }
+                bcrypt.compare(password, admin.adminPassword, (err, result) => {
+                    if (result) {
+                        const adminUser = {
+                            ...admin._doc,
+                            isAdmin: true,
+                            isModerator: false,
+                            userID: admin._id,
+                            userName: admin.adminName,
+                            userType: "admin",
+                        };
+                        logEvent({
+                            req,
+                            user_id: admin._id,
+                            action: "authentication_attempt",
+                            status: "success",
+                            event_description: "Admin login successful",
+                            module: "passport_local",
+                        }).catch((err) => console.error("Logging error: ", err));
+                        return done(null, adminUser);
+                    } else {
+                        // password doesn't match for admin, check moderator
+                        logEvent({
+                            req,
+                            attempted_identifier: username,
+                            action: "authentication_attempt",
+                            status: "failure",
+                            event_description: "Admin login failed (wrong password)",
+                            module: "passport_local",
+                        }).catch((err) => console.error("Logging error: ", err));
+                        return checkModerator(req, username, password, done);
+                    }
+                });
             } else {
                 // not an admin check regular user
+                logEvent({
+                    req,
+                    attempted_identifier: username,
+                    action: "authentication_lockout",
+                    status: "failure",
+                    event_description: "User attempted login but no user found",
+                    module: "passport_local",
+                }).catch((err) => console.error("Logging error: ", err));
                 return checkModerator(req, username, password, done);
             }
         })
@@ -63,39 +73,49 @@ const checkModerator = (req, username, password, done) => {
         .then((moderator) => {
             if (moderator) {
                 // moderator login attempt
-                if (password === moderator.moderatorPassword) {
-                    const modUser = {
-                        ...moderator._doc,
-                        isAdmin: false,
-                        isModerator: true,
-                        userID: moderator._id,
-                        userName: moderator.moderatorName,
-                        userType: "moderator",
-                    };
-                    logEvent({
-                        req,
-                        user_id: moderator._id,
-                        action: "authentication_attempt",
-                        status: "success",
-                        event_description: "Moderator login successful",
-                        module: "passport_local",
-                    }).catch((err) => console.error("Logging error: ", err));
-                    console.log("Logging done: ");
-                    return done(null, modUser);
-                } else {
-                    // password doesn't match for moderator, check regular user
-                    logEvent({
-                        req,
-                        attempted_identifier: username,
-                        action: "authentication_attempt",
-                        status: "failure",
-                        event_description: "Moderator login failed (wrong password)",
-                        module: "passport_local",
-                    }).catch((err) => console.error("Logging error: ", err));
-                    return checkRegularUser(req, username, password, done);
-                }
+                bcrypt.compare(password, moderator.moderatorPassword, (err, result) => {
+                    if (result) {
+                        const modUser = {
+                            ...moderator._doc,
+                            isAdmin: false,
+                            isModerator: true,
+                            userID: moderator._id,
+                            userName: moderator.moderatorName,
+                            userType: "moderator",
+                        };
+                        logEvent({
+                            req,
+                            user_id: moderator._id,
+                            action: "authentication_attempt",
+                            status: "success",
+                            event_description: "Moderator login successful",
+                            module: "passport_local",
+                        }).catch((err) => console.error("Logging error: ", err));
+                        console.log("Logging done: ");
+                        return done(null, modUser);
+                    } else {
+                        // password doesn't match for moderator, check regular user
+                        logEvent({
+                            req,
+                            attempted_identifier: username,
+                            action: "authentication_attempt",
+                            status: "failure",
+                            event_description: "Moderator login failed (wrong password)",
+                            module: "passport_local",
+                        }).catch((err) => console.error("Logging error: ", err));
+                        return checkRegularUser(req, username, password, done);
+                    }
+                });
             } else {
                 // not a moderator, check regular user
+                logEvent({
+                    req,
+                    attempted_identifier: username,
+                    action: "authentication_lockout",
+                    status: "failure",
+                    event_description: "User attempted login but no user found",
+                    module: "passport_local",
+                }).catch((err) => console.error("Logging error: ", err));
                 return checkRegularUser(req, username, password, done);
             }
         })

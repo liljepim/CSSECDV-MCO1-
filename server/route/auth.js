@@ -58,9 +58,13 @@ router.post(
     function(req, res) {
         // If "remember me" is checked, set a longer session duration
         if (req.body.rememberme) {
-            req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+            console.log("Remember me triggered");
+            req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 1 day
+            req.session.touch();
         } else {
+            console.log("None remember me session triggered");
             req.session.cookie.expires = false; // Session expires when browser is closed
+            req.session.cookie.maxAge = null;
         }
 
         // Check user type and redirect accordingly
@@ -117,11 +121,18 @@ router.get("/security-questions", async (req, res) => {
 
 router.post("/security-questions", async (req, res) => {
     const { answer } = req.body;
+    try {
+        const match = await bcrypt.compare(answer, req.session.answer);
 
-    if (answer === req.session.answer) {
-        return res.redirect("change");
+        if (match) {
+            return res.redirect("/change");
+        } else {
+            return res.redirect("/security-questions?error=Incorrect+answer.");
+        }
+    } catch (err) {
+        console.error(err);
+        next(err);
     }
-    res.redirect("/security-questions?error=Incorrect+answer.");
 });
 
 router.get("/change", async (req, res) => {
@@ -269,39 +280,6 @@ router.get("/moderator", ensureAuthenticated, async (req, res) => {
     }
 });
 
-// router.get('/register', async (req, res) => {
-//     if(req.user){
-//         res.redirect('/')
-//     }
-//
-//     try {
-//         // Fetch all reviews from the database
-//         const reviews = await Review.find({})
-//             .sort({ reviewDate: -1 }) // Sort by most recent first
-//             .select('reviewID reviewTitle reviewContent reviewRating restoID userID reviewDate') // Select only needed fields
-//
-//         // render moderator page with reviews
-//         res.render('moderator', {
-//             css: ['styles2'],
-//             user: req.user,
-//             isModerator: true,
-//             reviews: reviews || [],
-//             success_msg: req.flash('success_msg'),
-//             error_msg: req.flash('error_msg')
-//         });
-//     } catch (error) {
-//         console.error('Error fetching reviews:', error);
-//         req.flash('error_msg', 'Error loading reviews');
-//         res.render('moderator', {
-//             css: ['styles2'],
-//             user: req.user,
-//             isModerator: true,
-//             reviews: [],
-//             error_msg: req.flash('error_msg')
-//         });
-//     }
-// });
-
 router.get("/register", async (req, res) => {
     if (req.user) {
         return res.redirect("/");
@@ -413,6 +391,9 @@ router.post("/register", upload, async (req, res) => {
             errors,
         });
     } else {
+        hashedAns1 = await bcrypt.hash(answer1, 10);
+        hashedAns2 = await bcrypt.hash(answer2, 10);
+        hashedAns3 = await bcrypt.hash(answer3, 10);
         let genSalt = "";
         let hashedPassword = "";
         bcrypt.genSalt(10, (err, salt) => {
@@ -427,9 +408,9 @@ router.post("/register", upload, async (req, res) => {
                     question1: security1,
                     question2: security2,
                     question3: security3,
-                    answer1: answer1,
-                    answer2: answer2,
-                    answer3: answer3,
+                    answer1: hashedAns1,
+                    answer2: hashedAns2,
+                    answer3: hashedAns3,
                 });
                 newUser.save();
             });
@@ -444,7 +425,13 @@ router.get("/logout", (req, res, next) => {
         if (err) {
             return next(err);
         }
-        res.redirect("/");
+
+        req.session.destroy((err) => {
+            if (err) console.error("Error destroying session: ", err);
+            console.log("Cookie destroyed");
+            res.clearCookie("connect.sid");
+            res.redirect("/");
+        });
     });
 });
 
